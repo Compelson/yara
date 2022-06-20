@@ -24,27 +24,27 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E236CE39-D8F3-4DB6-985C-F2794FF17746}</ProjectGuid>
-    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <ConfigurationType>StaticLibrary</ConfigurationType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='StaticRelease|x64'" Label="Configuration">
@@ -88,7 +88,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;CUCKOO_MODULE;HASH_MODULE;DOTNET_MODULE;HAVE_LIBCRYPTO;USE_WINDOWS_PROC;YR_BUILDING_STATIC_LIB;YR_PROFILING_ENABLED</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SHA256=SHA256_yara_internal;BIO_ctrl=BIO_ctrl_yara_internal;BIO_free=BIO_free_yara_internal;BIO_new=BIO_new_yara_internal;BIO_s_mem=BIO_s_mem_yara_internal;BN_add_word=BN_add_word_yara_internal;BN_dec2bn=BN_dec2bn_yara_internal;BN_hex2bn=BN_hex2bn_yara_internal;EVP_DigestFinal=EVP_DigestFinal_yara_internal;EVP_DigestInit=EVP_DigestInit_yara_internal;EVP_DigestUpdate=EVP_DigestUpdate_yara_internal;EVP_MD_CTX_free=EVP_MD_CTX_free_yara_internal;EVP_MD_CTX_new=EVP_MD_CTX_new_yara_internal;EVP_CIPHER_CTX_iv_length=EVP_CIPHER_CTX_iv_length_yara_internal;EVP_CIPHER_block_size=EVP_CIPHER_block_size_yara_internal;EVP_MD_size=EVP_MD_size_yara_internal;ASN1_parse=ASN1_parse_yara_internal;EVP_CIPHER_CTX_ctrl=EVP_CIPHER_CTX_ctrl_yara_internal;EVP_CIPHER_CTX_free=EVP_CIPHER_CTX_free_yara_internal;EVP_CIPHER_CTX_new=EVP_CIPHER_CTX_new_yara_internal;EVP_CIPHER_CTX_reset=EVP_CIPHER_CTX_reset_yara_internal;EVP_CIPHER_CTX_set_padding=EVP_CIPHER_CTX_set_padding_yara_internal;EVP_CipherFinal_ex=EVP_CipherFinal_ex_yara_internal;EVP_CipherInit_ex=EVP_CipherInit_ex_yara_internal;EVP_CipherUpdate=EVP_CipherUpdate_yara_internal;EVP_DecryptFinal=EVP_DecryptFinal_yara_internal;EVP_DecryptFinal_ex=EVP_DecryptFinal_ex_yara_internal;EVP_DecryptInit=EVP_DecryptInit_yara_internal;EVP_DecryptInit_ex=EVP_DecryptInit_ex_yara_internal;EVP_DecryptUpdate=EVP_DecryptUpdate_yara_internal;EVP_EncryptFinal=EVP_EncryptFinal_yara_internal;EVP_EncryptFinal_ex=EVP_EncryptFinal_ex_yara_internal;EVP_EncryptInit=EVP_EncryptInit_yara_internal;EVP_EncryptUpdate=EVP_EncryptUpdate_yara_internal;BN_bin2bn=BN_bin2bn_yara_internal;BN_bn2bin=BN_bn2bin_yara_internal;BN_bn2binpad=BN_bn2binpad_yara_internal;BN_copy=BN_copy_yara_internal;BN_free=BN_free_yara_internal;BN_new=BN_new_yara_internal;BN_num_bits=BN_num_bits_yara_internal;BN_set_word=BN_set_word_yara_internal;BN_CTX_free=BN_CTX_free_yara_internal;BN_CTX_new=BN_CTX_new_yara_internal;PKCS5_PBKDF2_HMAC=PKCS5_PBKDF2_HMAC_yara_internal;PKCS5_PBKDF2_HMAC_SHA1=PKCS5_PBKDF2_HMAC_SHA1_yara_internal;BN_mod_add=BN_mod_add_yara_internal;EVP_des_cbc=EVP_des_cbc_yara_internal;EVP_des_ecb=EVP_des_ecb_yara_internal;EVP_aes_128_cbc=EVP_aes_128_cbc_yara_internal;EVP_aes_128_cfb128=EVP_aes_128_cfb128_yara_internal;EVP_aes_128_ctr=EVP_aes_128_ctr_yara_internal;EVP_aes_128_ecb=EVP_aes_128_ecb_yara_internal;EVP_aes_128_gcm=EVP_aes_128_gcm_yara_internal;EVP_aes_128_xts=EVP_aes_128_xts_yara_internal;EVP_aes_192_cbc=EVP_aes_192_cbc_yara_internal;EVP_aes_192_cfb128=EVP_aes_192_cfb128_yara_internal;EVP_aes_192_ctr=EVP_aes_192_ctr_yara_internal;EVP_aes_192_ecb=EVP_aes_192_ecb_yara_internal;EVP_aes_192_gcm=EVP_aes_192_gcm_yara_internal;EVP_aes_256_cbc=EVP_aes_256_cbc_yara_internal;EVP_aes_256_cfb128=EVP_aes_256_cfb128_yara_internal;EVP_aes_256_ctr=EVP_aes_256_ctr_yara_internal;EVP_aes_256_ecb=EVP_aes_256_ecb_yara_internal;EVP_aes_256_gcm=EVP_aes_256_gcm_yara_internal;EVP_aes_256_xts=EVP_aes_256_xts_yara_internal;EVP_sha1=EVP_sha1_yara_internal;EVP_sha256=EVP_sha256_yara_internal;EVP_sha512=EVP_sha512_yara_internal;AES_encrypt=AES_encrypt_yara_internal;AES_set_decrypt_key=AES_set_decrypt_key_yara_internal;AES_set_encrypt_key=AES_set_encrypt_key_yara_internal;_CRT_SECURE_NO_WARNINGS;CUCKOO_MODULE;HASH_MODULE;DOTNET_MODULE;HAVE_LIBCRYPTO;USE_WINDOWS_PROC;YR_BUILDING_STATIC_LIB;YR_PROFILING_ENABLED</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\libyara;..\..\..\libyara\include;..\..\..;..\packages\YARA.Jansson.x86.1.1.0\include;..\packages\YARA.OpenSSL.x86.1.1.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4005;4273;4090</DisableSpecificWarnings>
       <CompileAs>CompileAsC</CompileAs>
@@ -115,7 +115,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;CUCKOO_MODULE;HASH_MODULE;DOTNET_MODULE;HAVE_LIBCRYPTO;USE_WINDOWS_PROC;YR_BUILDING_STATIC_LIBC;YR_PROFILING_ENABLED</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;CUCKOO_MODULE;HASH_MODULE;DOTNET_MODULE;USE_WINDOWS_PROC;YR_BUILDING_STATIC_LIBC;YR_PROFILING_ENABLED;HAVE_LIBCRYPTO</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\libyara;..\..\..\libyara\include;..\..\..;..\packages\YARA.Jansson.x64.1.1.0\include;..\packages\YARA.OpenSSL.x64.1.1.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4005;4273;4090</DisableSpecificWarnings>
       <CompileAs>CompileAsC</CompileAs>
@@ -124,13 +124,16 @@
       <OmitFramePointers>false</OmitFramePointers>
       <PrecompiledHeaderFile />
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PreprocessToFile>false</PreprocessToFile>
     </ClCompile>
     <Lib>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalDependencies>crypt32.lib;ws2_32.lib;advapi32.lib;jansson.lib;libcrypto.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>crypt32.lib;ws2_32.lib;advapi32.lib;jansson.lib;libcrypto-1_1x64vc142d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkTimeCodeGeneration>true</LinkTimeCodeGeneration>
-      <AdditionalLibraryDirectories>..\packages\YARA.OpenSSL.x64.1.1.1\lib;..\packages\YARA.Jansson.x64.1.1.0\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>c:\Sources\trunk\Support\Lib\;..\packages\YARA.Jansson.x64.1.1.0\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>/IGNORE:4221</AdditionalOptions>
+      <RemoveObjects>
+      </RemoveObjects>
     </Lib>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
@@ -142,7 +145,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;CUCKOO_MODULE;HASH_MODULE;DOTNET_MODULE;HAVE_LIBCRYPTO;USE_WINDOWS_PROC;YR_BUILDING_STATIC_LIB</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SHA256=SHA256_yara_internal;BIO_ctrl=BIO_ctrl_yara_internal;BIO_free=BIO_free_yara_internal;BIO_new=BIO_new_yara_internal;BIO_s_mem=BIO_s_mem_yara_internal;BN_add_word=BN_add_word_yara_internal;BN_dec2bn=BN_dec2bn_yara_internal;BN_hex2bn=BN_hex2bn_yara_internal;EVP_DigestFinal=EVP_DigestFinal_yara_internal;EVP_DigestInit=EVP_DigestInit_yara_internal;EVP_DigestUpdate=EVP_DigestUpdate_yara_internal;EVP_MD_CTX_free=EVP_MD_CTX_free_yara_internal;EVP_MD_CTX_new=EVP_MD_CTX_new_yara_internal;EVP_CIPHER_CTX_iv_length=EVP_CIPHER_CTX_iv_length_yara_internal;EVP_CIPHER_block_size=EVP_CIPHER_block_size_yara_internal;EVP_MD_size=EVP_MD_size_yara_internal;ASN1_parse=ASN1_parse_yara_internal;EVP_CIPHER_CTX_ctrl=EVP_CIPHER_CTX_ctrl_yara_internal;EVP_CIPHER_CTX_free=EVP_CIPHER_CTX_free_yara_internal;EVP_CIPHER_CTX_new=EVP_CIPHER_CTX_new_yara_internal;EVP_CIPHER_CTX_reset=EVP_CIPHER_CTX_reset_yara_internal;EVP_CIPHER_CTX_set_padding=EVP_CIPHER_CTX_set_padding_yara_internal;EVP_CipherFinal_ex=EVP_CipherFinal_ex_yara_internal;EVP_CipherInit_ex=EVP_CipherInit_ex_yara_internal;EVP_CipherUpdate=EVP_CipherUpdate_yara_internal;EVP_DecryptFinal=EVP_DecryptFinal_yara_internal;EVP_DecryptFinal_ex=EVP_DecryptFinal_ex_yara_internal;EVP_DecryptInit=EVP_DecryptInit_yara_internal;EVP_DecryptInit_ex=EVP_DecryptInit_ex_yara_internal;EVP_DecryptUpdate=EVP_DecryptUpdate_yara_internal;EVP_EncryptFinal=EVP_EncryptFinal_yara_internal;EVP_EncryptFinal_ex=EVP_EncryptFinal_ex_yara_internal;EVP_EncryptInit=EVP_EncryptInit_yara_internal;EVP_EncryptUpdate=EVP_EncryptUpdate_yara_internal;BN_bin2bn=BN_bin2bn_yara_internal;BN_bn2bin=BN_bn2bin_yara_internal;BN_bn2binpad=BN_bn2binpad_yara_internal;BN_copy=BN_copy_yara_internal;BN_free=BN_free_yara_internal;BN_new=BN_new_yara_internal;BN_num_bits=BN_num_bits_yara_internal;BN_set_word=BN_set_word_yara_internal;BN_CTX_free=BN_CTX_free_yara_internal;BN_CTX_new=BN_CTX_new_yara_internal;PKCS5_PBKDF2_HMAC=PKCS5_PBKDF2_HMAC_yara_internal;PKCS5_PBKDF2_HMAC_SHA1=PKCS5_PBKDF2_HMAC_SHA1_yara_internal;BN_mod_add=BN_mod_add_yara_internal;EVP_des_cbc=EVP_des_cbc_yara_internal;EVP_des_ecb=EVP_des_ecb_yara_internal;EVP_aes_128_cbc=EVP_aes_128_cbc_yara_internal;EVP_aes_128_cfb128=EVP_aes_128_cfb128_yara_internal;EVP_aes_128_ctr=EVP_aes_128_ctr_yara_internal;EVP_aes_128_ecb=EVP_aes_128_ecb_yara_internal;EVP_aes_128_gcm=EVP_aes_128_gcm_yara_internal;EVP_aes_128_xts=EVP_aes_128_xts_yara_internal;EVP_aes_192_cbc=EVP_aes_192_cbc_yara_internal;EVP_aes_192_cfb128=EVP_aes_192_cfb128_yara_internal;EVP_aes_192_ctr=EVP_aes_192_ctr_yara_internal;EVP_aes_192_ecb=EVP_aes_192_ecb_yara_internal;EVP_aes_192_gcm=EVP_aes_192_gcm_yara_internal;EVP_aes_256_cbc=EVP_aes_256_cbc_yara_internal;EVP_aes_256_cfb128=EVP_aes_256_cfb128_yara_internal;EVP_aes_256_ctr=EVP_aes_256_ctr_yara_internal;EVP_aes_256_ecb=EVP_aes_256_ecb_yara_internal;EVP_aes_256_gcm=EVP_aes_256_gcm_yara_internal;EVP_aes_256_xts=EVP_aes_256_xts_yara_internal;EVP_sha1=EVP_sha1_yara_internal;EVP_sha256=EVP_sha256_yara_internal;EVP_sha512=EVP_sha512_yara_internal;AES_encrypt=AES_encrypt_yara_internal;AES_set_decrypt_key=AES_set_decrypt_key_yara_internal;AES_set_encrypt_key=AES_set_encrypt_key_yara_internal;_CRT_SECURE_NO_WARNINGS;CUCKOO_MODULE;HASH_MODULE;DOTNET_MODULE;HAVE_LIBCRYPTO;USE_WINDOWS_PROC;YR_BUILDING_STATIC_LIB</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\libyara;..\..\..\libyara\include;..\..\..;..\packages\YARA.Jansson.x86.1.1.0\include;..\packages\YARA.OpenSSL.x86.1.1.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4005;4273;4090</DisableSpecificWarnings>
       <CompileAs>CompileAsC</CompileAs>
@@ -167,7 +170,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;CUCKOO_MODULE;HASH_MODULE;DOTNET_MODULE;HAVE_LIBCRYPTO;USE_WINDOWS_PROC;YR_BUILDING_STATIC_LIB</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SHA256=SHA256_yara_internal;BIO_ctrl=BIO_ctrl_yara_internal;BIO_free=BIO_free_yara_internal;BIO_new=BIO_new_yara_internal;BIO_s_mem=BIO_s_mem_yara_internal;BN_add_word=BN_add_word_yara_internal;BN_dec2bn=BN_dec2bn_yara_internal;BN_hex2bn=BN_hex2bn_yara_internal;EVP_DigestFinal=EVP_DigestFinal_yara_internal;EVP_DigestInit=EVP_DigestInit_yara_internal;EVP_DigestUpdate=EVP_DigestUpdate_yara_internal;EVP_MD_CTX_free=EVP_MD_CTX_free_yara_internal;EVP_MD_CTX_new=EVP_MD_CTX_new_yara_internal;EVP_CIPHER_CTX_iv_length=EVP_CIPHER_CTX_iv_length_yara_internal;EVP_CIPHER_block_size=EVP_CIPHER_block_size_yara_internal;EVP_MD_size=EVP_MD_size_yara_internal;ASN1_parse=ASN1_parse_yara_internal;EVP_CIPHER_CTX_ctrl=EVP_CIPHER_CTX_ctrl_yara_internal;EVP_CIPHER_CTX_free=EVP_CIPHER_CTX_free_yara_internal;EVP_CIPHER_CTX_new=EVP_CIPHER_CTX_new_yara_internal;EVP_CIPHER_CTX_reset=EVP_CIPHER_CTX_reset_yara_internal;EVP_CIPHER_CTX_set_padding=EVP_CIPHER_CTX_set_padding_yara_internal;EVP_CipherFinal_ex=EVP_CipherFinal_ex_yara_internal;EVP_CipherInit_ex=EVP_CipherInit_ex_yara_internal;EVP_CipherUpdate=EVP_CipherUpdate_yara_internal;EVP_DecryptFinal=EVP_DecryptFinal_yara_internal;EVP_DecryptFinal_ex=EVP_DecryptFinal_ex_yara_internal;EVP_DecryptInit=EVP_DecryptInit_yara_internal;EVP_DecryptInit_ex=EVP_DecryptInit_ex_yara_internal;EVP_DecryptUpdate=EVP_DecryptUpdate_yara_internal;EVP_EncryptFinal=EVP_EncryptFinal_yara_internal;EVP_EncryptFinal_ex=EVP_EncryptFinal_ex_yara_internal;EVP_EncryptInit=EVP_EncryptInit_yara_internal;EVP_EncryptUpdate=EVP_EncryptUpdate_yara_internal;BN_bin2bn=BN_bin2bn_yara_internal;BN_bn2bin=BN_bn2bin_yara_internal;BN_bn2binpad=BN_bn2binpad_yara_internal;BN_copy=BN_copy_yara_internal;BN_free=BN_free_yara_internal;BN_new=BN_new_yara_internal;BN_num_bits=BN_num_bits_yara_internal;BN_set_word=BN_set_word_yara_internal;BN_CTX_free=BN_CTX_free_yara_internal;BN_CTX_new=BN_CTX_new_yara_internal;PKCS5_PBKDF2_HMAC=PKCS5_PBKDF2_HMAC_yara_internal;PKCS5_PBKDF2_HMAC_SHA1=PKCS5_PBKDF2_HMAC_SHA1_yara_internal;BN_mod_add=BN_mod_add_yara_internal;EVP_des_cbc=EVP_des_cbc_yara_internal;EVP_des_ecb=EVP_des_ecb_yara_internal;EVP_aes_128_cbc=EVP_aes_128_cbc_yara_internal;EVP_aes_128_cfb128=EVP_aes_128_cfb128_yara_internal;EVP_aes_128_ctr=EVP_aes_128_ctr_yara_internal;EVP_aes_128_ecb=EVP_aes_128_ecb_yara_internal;EVP_aes_128_gcm=EVP_aes_128_gcm_yara_internal;EVP_aes_128_xts=EVP_aes_128_xts_yara_internal;EVP_aes_192_cbc=EVP_aes_192_cbc_yara_internal;EVP_aes_192_cfb128=EVP_aes_192_cfb128_yara_internal;EVP_aes_192_ctr=EVP_aes_192_ctr_yara_internal;EVP_aes_192_ecb=EVP_aes_192_ecb_yara_internal;EVP_aes_192_gcm=EVP_aes_192_gcm_yara_internal;EVP_aes_256_cbc=EVP_aes_256_cbc_yara_internal;EVP_aes_256_cfb128=EVP_aes_256_cfb128_yara_internal;EVP_aes_256_ctr=EVP_aes_256_ctr_yara_internal;EVP_aes_256_ecb=EVP_aes_256_ecb_yara_internal;EVP_aes_256_gcm=EVP_aes_256_gcm_yara_internal;EVP_aes_256_xts=EVP_aes_256_xts_yara_internal;EVP_sha1=EVP_sha1_yara_internal;EVP_sha256=EVP_sha256_yara_internal;EVP_sha512=EVP_sha512_yara_internal;AES_encrypt=AES_encrypt_yara_internal;AES_set_decrypt_key=AES_set_decrypt_key_yara_internal;AES_set_encrypt_key=AES_set_encrypt_key_yara_internal;SHA256=SHA256_yara_internal;BIO_ctrl=BIO_ctrl_yara_internal;BIO_free=BIO_free_yara_internal;BIO_new=BIO_new_yara_internal;BIO_s_mem=BIO_s_mem_yara_internal;BN_add_word=BN_add_word_yara_internal;BN_dec2bn=BN_dec2bn_yara_internal;BN_hex2bn=BN_hex2bn_yara_internal;EVP_DigestFinal=EVP_DigestFinal_yara_internal;EVP_DigestInit=EVP_DigestInit_yara_internal;EVP_DigestUpdate=EVP_DigestUpdate_yara_internal;EVP_MD_CTX_free=EVP_MD_CTX_free_yara_internal;EVP_MD_CTX_new=EVP_MD_CTX_new_yara_internal;EVP_CIPHER_CTX_iv_length=EVP_CIPHER_CTX_iv_length_yara_internal;EVP_CIPHER_block_size=EVP_CIPHER_block_size_yara_internal;EVP_MD_size=EVP_MD_size_yara_internal;ASN1_parse=ASN1_parse_yara_internal;EVP_CIPHER_CTX_ctrl=EVP_CIPHER_CTX_ctrl_yara_internal;EVP_CIPHER_CTX_free=EVP_CIPHER_CTX_free_yara_internal;EVP_CIPHER_CTX_new=EVP_CIPHER_CTX_new_yara_internal;EVP_CIPHER_CTX_reset=EVP_CIPHER_CTX_reset_yara_internal;EVP_CIPHER_CTX_set_padding=EVP_CIPHER_CTX_set_padding_yara_internal;EVP_CipherFinal_ex=EVP_CipherFinal_ex_yara_internal;EVP_CipherInit_ex=EVP_CipherInit_ex_yara_internal;EVP_CipherUpdate=EVP_CipherUpdate_yara_internal;EVP_DecryptFinal=EVP_DecryptFinal_yara_internal;EVP_DecryptFinal_ex=EVP_DecryptFinal_ex_yara_internal;EVP_DecryptInit=EVP_DecryptInit_yara_internal;EVP_DecryptInit_ex=EVP_DecryptInit_ex_yara_internal;EVP_DecryptUpdate=EVP_DecryptUpdate_yara_internal;EVP_EncryptFinal=EVP_EncryptFinal_yara_internal;EVP_EncryptFinal_ex=EVP_EncryptFinal_ex_yara_internal;EVP_EncryptInit=EVP_EncryptInit_yara_internal;EVP_EncryptUpdate=EVP_EncryptUpdate_yara_internal;BN_bin2bn=BN_bin2bn_yara_internal;BN_bn2bin=BN_bn2bin_yara_internal;BN_bn2binpad=BN_bn2binpad_yara_internal;BN_copy=BN_copy_yara_internal;BN_free=BN_free_yara_internal;BN_new=BN_new_yara_internal;BN_num_bits=BN_num_bits_yara_internal;BN_set_word=BN_set_word_yara_internal;BN_CTX_free=BN_CTX_free_yara_internal;BN_CTX_new=BN_CTX_new_yara_internal;PKCS5_PBKDF2_HMAC=PKCS5_PBKDF2_HMAC_yara_internal;PKCS5_PBKDF2_HMAC_SHA1=PKCS5_PBKDF2_HMAC_SHA1_yara_internal;BN_mod_add=BN_mod_add_yara_internal;EVP_des_cbc=EVP_des_cbc_yara_internal;EVP_des_ecb=EVP_des_ecb_yara_internal;EVP_aes_128_cbc=EVP_aes_128_cbc_yara_internal;EVP_aes_128_cfb128=EVP_aes_128_cfb128_yara_internal;EVP_aes_128_ctr=EVP_aes_128_ctr_yara_internal;EVP_aes_128_ecb=EVP_aes_128_ecb_yara_internal;EVP_aes_128_gcm=EVP_aes_128_gcm_yara_internal;EVP_aes_128_xts=EVP_aes_128_xts_yara_internal;EVP_aes_192_cbc=EVP_aes_192_cbc_yara_internal;EVP_aes_192_cfb128=EVP_aes_192_cfb128_yara_internal;EVP_aes_192_ctr=EVP_aes_192_ctr_yara_internal;EVP_aes_192_ecb=EVP_aes_192_ecb_yara_internal;EVP_aes_192_gcm=EVP_aes_192_gcm_yara_internal;EVP_aes_256_cbc=EVP_aes_256_cbc_yara_internal;EVP_aes_256_cfb128=EVP_aes_256_cfb128_yara_internal;EVP_aes_256_ctr=EVP_aes_256_ctr_yara_internal;EVP_aes_256_ecb=EVP_aes_256_ecb_yara_internal;EVP_aes_256_gcm=EVP_aes_256_gcm_yara_internal;EVP_aes_256_xts=EVP_aes_256_xts_yara_internal;EVP_sha1=EVP_sha1_yara_internal;EVP_sha256=EVP_sha256_yara_internal;EVP_sha512=EVP_sha512_yara_internal;AES_encrypt=AES_encrypt_yara_internal;AES_set_decrypt_key=AES_set_decrypt_key_yara_internal;AES_set_encrypt_key=AES_set_encrypt_key_yara_internal;_CRT_SECURE_NO_WARNINGS;CUCKOO_MODULE;HASH_MODULE;DOTNET_MODULE;HAVE_LIBCRYPTO;USE_WINDOWS_PROC;YR_BUILDING_STATIC_LIB</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\libyara;..\..\..\libyara\include;..\..\..;..\packages\YARA.Jansson.x64.1.1.0\include;..\packages\YARA.OpenSSL.x64.1.1.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4005;4273;4090</DisableSpecificWarnings>
       <CompileAs>CompileAsC</CompileAs>
@@ -177,10 +180,10 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Lib>
-      <AdditionalDependencies>jansson.lib;libcrypto.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>crypt32.lib;ws2_32.lib;advapi32.lib;jansson.lib;libcrypto-1_1x64vc142.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
-      <AdditionalLibraryDirectories>..\packages\YARA.OpenSSL.x64.1.1.1\lib;..\packages\YARA.Jansson.x64.1.1.0\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LinkTimeCodeGeneration>true</LinkTimeCodeGeneration>
+      <AdditionalLibraryDirectories>c:\Sources\trunk\Support\Lib\;..\packages\YARA.Jansson.x64.1.1.0\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>/IGNORE:4221</AdditionalOptions>
     </Lib>
     <Link>
@@ -237,6 +240,7 @@
     <ClCompile Include="..\..\..\libyara\libyara.c" />
     <ClCompile Include="..\..\..\libyara\mem.c" />
     <ClCompile Include="..\..\..\libyara\modules.c" />
+    <ClCompile Include="..\..\..\libyara\modules\androguard.c" />
     <ClCompile Include="..\..\..\libyara\modules\console\console.c" />
     <ClCompile Include="..\..\..\libyara\modules\cuckoo\cuckoo.c" />
     <ClCompile Include="..\..\..\libyara\modules\dex\dex.c" />

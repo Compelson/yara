@@ -11,6 +11,7 @@ MODULE(dotnet)
 
 #ifdef CUCKOO_MODULE
 MODULE(cuckoo)
+MODULE(androguard)
 #endif
 
 #ifdef MAGIC_MODULE
