@@ -33,11 +33,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "../crypto.h"
 #if defined(HAVE_LIBCRYPTO)
+#include "openssllib.h"
+/*
 #include <openssl/asn1.h>
 #include <openssl/bio.h>
 #include <openssl/pkcs7.h>
 #include <openssl/safestack.h>
 #include <openssl/x509.h>
+*/
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 #define X509_get_signature_nid(o) OBJ_obj2nid((o)->sig_alg->algorithm)

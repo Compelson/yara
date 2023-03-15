@@ -39,7 +39,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <yara/dotnet.h>
 
 #if HAVE_LIBCRYPTO
-#include <openssl/asn1.h>
+#include "openssllib.h"
+//#include <openssl/asn1.h>
 #endif
 
 PIMAGE_NT_HEADERS32 pe_get_header(const uint8_t* data, size_t data_size)
