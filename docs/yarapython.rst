@@ -239,13 +239,11 @@ The passed dictionary will be something like this:
     'namespace': 'default',
     'rule': 'my_rule',
     'meta': {},
-    'strings': [(81L, '$a', 'abc'), (141L, '$b', 'def')]
+    'strings': [StringMatch, StringMatch]
   }
 
 The *matches* field indicates if the rule matches the data or not. The
-*strings* fields is a list of matching strings, with vectors of the form::
-
-  (<offset>, <string identifier>, <string data>)
+*strings* field is a list of :py:class:`yara.StringMatch` objects.
 
 The ``match`` method returns a list of instances of the class :py:class:`yara.Match`.
 Instances of this class have the same attributes as the dictionary passed to the
@@ -453,7 +451,7 @@ Reference
 
   .. py:method:: save(...)
 
-    .. versionchanged:: 3.4.0
+  .. versionchanged:: 3.4.0
 
     Save compiled rules to a file. Either *filepath* or *file* must be provided.
 
@@ -462,6 +460,8 @@ Reference
     :raises: **yara.Error**: If an error occurred while saving the file.
 
 .. py:class:: Match
+
+  .. versionadded:: 4.3.0
 
   Objects returned by :py:meth:`yara.Rules.match`, representing a match.
 
@@ -483,5 +483,49 @@ Reference
 
   .. py:attribute:: strings
 
-    List of tuples containing information about the matching strings. Each
-    tuple has the form: `(<offset>, <string identifier>, <string data>)`.
+    List of StringMatch objects.
+
+.. py:class:: StringMatch
+
+  .. versionadded:: 3.4.0
+
+  Objects which represent string matches.
+
+  .. py:attribute:: identifier
+
+    Name of the matching string.
+
+  .. py:attribute:: instances
+
+    List of StringMatchInstance objects.
+
+  .. py:method:: is_xor()
+
+    Returns a boolean if the string is using the xor modifier.
+
+.. py:class:: StringMatchInstance
+
+  .. versionadded:: 4.3.0
+
+  Objects which represent instances of matched strings.
+
+  .. py:attribute:: matched_data
+
+    Bytes of the matched data.
+
+  .. py:attribute:: matched_length
+
+    Length of the matched data.
+
+  .. py:attribute:: offset
+
+    Offset of the matched data.
+
+  .. py:attribute:: xor_key
+
+    XOR key found for the string.
+
+  .. py:method:: plaintext()
+
+    Returns the plaintext version of the string after xor key is applied. If
+    the string is not an xor string then no modification is done.

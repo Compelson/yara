@@ -33,7 +33,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <sys/wait.h>
 #include <unistd.h>
 #include <yara.h>
 
@@ -509,6 +508,10 @@ static void test_syntax()
       "rule test { strings: $a = \"a\" condition: for /foo/ of them: ($) }",
       ERROR_INVALID_VALUE);
 
+  assert_error(
+      "rule test { strings: $a = \"a\" condition: for 3.14159 of them: ($) }",
+      ERROR_INVALID_VALUE);
+
   YR_DEBUG_FPRINTF(1, stderr, "} // %s()\n", __FUNCTION__);
 }
 
@@ -526,6 +529,22 @@ static void test_anonymous_strings()
 static void test_warnings()
 {
   YR_DEBUG_FPRINTF(1, stderr, "+ %s() {\n", __FUNCTION__);
+
+  assert_warning("rule test { \
+    strings: \
+      $a = \"AXSERS\" \
+      $b = \"WXSMTS\" \
+    condition: \
+      2 of them at 0 \
+    }");
+
+  assert_warning("rule test { \
+    strings: \
+      $a = \"AXSERS\" \
+      $b = \"WXSMTS\" \
+    condition: \
+      all of them at 0 \
+    }");
 
   assert_warning("rule test { \
     strings: \
@@ -607,6 +626,22 @@ static void test_warnings()
       condition: \
         2 of (a*) \
     }");
+
+  assert_warning("rule test { \
+    strings: \
+      $a = \"AXSERS\" \
+    condition: \
+      2 of ($a*) at 0\
+    }");
+
+  assert_error(
+      "rule test { \
+      strings: \
+        $a = \"AXSERS\" \
+      condition: \
+        1 of them at \"x\"\
+    }",
+      ERROR_INVALID_VALUE);
 
   YR_DEBUG_FPRINTF(1, stderr, "} // %s()\n", __FUNCTION__);
 }
@@ -761,6 +796,17 @@ static void test_strings()
              none of them in (0..10)\n\
        }",
       "AXSERS" TEXT_1024_BYTES);
+
+  // https://github.com/VirusTotal/yara/issues/1757
+  assert_false_rule(
+      "rule test {\n\
+         strings:\n\
+             $a = \"foo\"\n\
+             $b = \"foo\"\n\
+         condition:\n\
+             none of them in (0..1)\n\
+       }",
+      "foo");
 
   // https://github.com/VirusTotal/yara/issues/1660
   assert_false_rule(
@@ -1634,6 +1680,12 @@ static void test_at()
 
   assert_true_rule(
       "rule test { \
+        strings: $a = \"miss\" \
+        condition: any of them at 0}",
+      "mississippi");
+
+  assert_true_rule(
+      "rule test { \
         strings: $a = \"ssi\" \
         condition: $a at (1024+2) and $a at (1024+5) }",
       TEXT_1024_BYTES "mississippi");
@@ -1936,6 +1988,38 @@ static void test_of()
        }",
       "mississippi");
 
+  // If one of the bounds can not be determined statically it isn't an error.
+  assert_true_rule(
+      "rule test { \
+      strings: \
+        $a = \"AXSERS\" \
+      condition: \
+        true or any of them in (0..filesize-100) \
+    }",
+      TEXT_1024_BYTES);
+
+  // Lower bound can not be negative, if it can be determined statically.
+  assert_error(
+      "rule test { \
+        strings: \
+          $a = \"AXSERS\" \
+        condition: \
+          $a in (-1..10) \
+      }",
+      ERROR_INVALID_VALUE);
+
+  // Make sure that an undefined range boundary returns an undefined value,
+  // which translates to false.
+  assert_false_rule(
+      "import \"tests\" \
+        rule test { \
+		      strings: \
+			      $a = \"missi\" \
+		      condition: \
+			      any of them in (0..tests.undefined.i) \
+	    }",
+      "mississippi");
+
   YR_DEBUG_FPRINTF(1, stderr, "} // %s()\n", __FUNCTION__);
 }
 
@@ -2173,26 +2257,6 @@ void test_for()
       }",
       ERROR_INVALID_VALUE);
 
-  // If one of the bounds can not be determined statically it isn't an error.
-  assert_true_rule(
-      "rule test { \
-      strings: \
-        $a = \"AXSERS\" \
-      condition: \
-        true or any of them in (0..filesize-100) \
-    }",
-      TEXT_1024_BYTES);
-
-  // Lower bound can not be negative, if it can be determined statically.
-  assert_error(
-      "rule test { \
-        strings: \
-          $a = \"AXSERS\" \
-        condition: \
-          $a in (-1..10) \
-      }",
-      ERROR_INVALID_VALUE);
-
   // Test case for https://github.com/VirusTotal/yara/issues/1729
   assert_true_rule(
       "rule test { \
@@ -2202,6 +2266,27 @@ void test_for()
           for any n in (1..10) : ( n of ($a*) ) \
       }",
       "abcde");
+
+  assert_true_rule(
+      "rule test { \
+        condition: \
+          for all i in (\"a\", \"b\") : (i == \"a\" or i == \"b\") \
+      }",
+      NULL);
+
+  assert_error(
+      "rule test { \
+        condition: \
+          for any i in (\"a\"): (i == 0) \
+      }",
+      ERROR_WRONG_TYPE);
+
+  assert_error(
+      "rule test { \
+        condition: \
+          for any i in (\"a\", 0): (i == 0) \
+      }",
+      ERROR_WRONG_TYPE);
 
   YR_DEBUG_FPRINTF(1, stderr, "} // %s()\n", __FUNCTION__);
 }
@@ -2780,6 +2865,17 @@ static void test_comments()
         strings: $a = { /*Some*/ 31 /*interleaved*/ [-] /*comments*/ 38 39 } \
         condition: !a == 9 }",
       "1234567890" TEXT_1024_BYTES);
+
+  // Test case for https://github.com/VirusTotal/yara/issues/1819
+  assert_true_rule(
+      "rule test { \
+        // single line comment with brace }\n\r \
+        strings: \
+          $a = \"foo\" ascii \
+        condition: \
+          $a \
+      }",
+      "foo");
 
   YR_DEBUG_FPRINTF(1, stderr, "} // %s()\n", __FUNCTION__);
 }
@@ -3577,6 +3673,20 @@ static void test_meta()
 void test_defined()
 {
   assert_true_rule("rule t { condition: defined 1 }", NULL);
+  assert_false_rule("rule t { condition: defined true and false }", NULL);
+  assert_true_rule("rule t { condition: defined (true and false) }", NULL);
+
+  assert_true_rule(
+      "import \"pe\" \
+      rule t { \
+        condition: \
+          defined ( \
+            for any x in (0..10) : ( \
+              pe.number_of_resources == 0 \
+            ) \
+          ) \
+      }",
+      NULL);
 
   assert_false_rule(
       "import \"pe\" \
@@ -3623,6 +3733,33 @@ void test_defined()
       rule t { \
         condition: \
           defined \"foo\" contains \"f\" \
+      }",
+      NULL);
+
+  // Test FOUND_IN and FOUND_AT propagates undefined values
+  assert_true_rule(
+      "import \"pe\" \
+      rule t { \
+        strings: \
+            $a = \"abc\" \
+        condition: \
+          not defined ($a in (0..pe.number_of_resources)) and \
+          not defined ($a in (pe.number_of_resources..5)) and \
+          not defined ($a at pe.number_of_resources) \
+      }",
+      NULL);
+
+  // Test that operations that would trigger a SIGFPE are detected and
+  // returns undefined
+  assert_true_rule(
+      "rule t { \
+        strings: \
+          $a = /aaa/ \
+        condition: \
+          (not defined (1 \\ #a)) and \
+          (not defined (1 % #a)) and \
+          (not defined ((#a + -0x7FFFFFFFFFFFFFFF - 1) \\ -1)) and \
+          (not defined ((#a + -0x7FFFFFFFFFFFFFFF - 1) % -1)) \
       }",
       NULL);
 }

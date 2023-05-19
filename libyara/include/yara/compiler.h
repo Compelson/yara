@@ -75,6 +75,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // variables.
 #define YR_INTERNAL_LOOP_VARS 3
 
+typedef struct _YR_ENUMERATION
+{
+  int type;
+  int count;
+} YR_ENUMERATION;
+
 typedef struct _YR_EXPRESSION
 {
   int type;
@@ -82,6 +88,7 @@ typedef struct _YR_EXPRESSION
   union
   {
     int64_t integer;
+    double double_;
     YR_OBJECT* object;
     YR_ARENA_REF sized_string_ref;
   } value;

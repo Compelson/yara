@@ -166,8 +166,8 @@ you have an example of a hexadecimal string with wild-cards:
 As shown in the example the wild-cards are nibble-wise, which means that you can
 define just one nibble of the byte and leave the other unknown.
 
-In some cases you may wish to specify that a byte is not a specific value. For
-that you can use the not operator with a byte value:
+Starting with version 4.3.0, you may specify that a byte is not a specific
+value. For that you can use the not operator with a byte value:
 
 .. code-block:: yara
 
@@ -1221,6 +1221,13 @@ integer range, like this:
     all of ($a*) in (filesize-500..filesize)
     any of ($a*, $b*) in (1000..2000)
 
+Starting with YARA 4.3.0 it is possible to express a set of strings at a
+specific offset, like this:
+
+.. code-block:: yara
+
+    any of ($a*) at 0
+
 
 Applying the same condition to many strings
 -------------------------------------------
@@ -1269,6 +1276,18 @@ occurrences, the first offset, and the length of each string respectively.
     for all of ($a*) : ( @ > @b )
 
 
+Starting with YARA 4.3.0 you can express conditions over text strings like this:
+
+.. code-block:: yara
+
+    for any s in ("71b36345516e076a0663e0bea97759e4", "1e7f7edeb06de02f2c2a9319de99e033") : ( pe.imphash() == s )
+
+It is worth remembering here that the two hashes referenced in the rule are
+normal text strings, and have nothing to do with the string section of the rule.
+Inside the loop condition the result of the `pe.imphash()` function is compared
+to each of the text strings, resulting in a more concise rule.
+
+
 Using anonymous strings with ``of`` and ``for..of``
 ---------------------------------------------------
 
@@ -1301,7 +1320,8 @@ using the syntax: @a[i], where i is an index indicating which occurrence
 of the string $a you are referring to. (@a[1], @a[2],...).
 
 Sometimes you will need to iterate over some of these offsets and guarantee
-they satisfy a given condition. For example:
+they satisfy a given condition. In such cases you can use the ``for..in`` syntax, 
+for example:
 
 .. code-block:: yara
 
@@ -1346,17 +1366,15 @@ applies here:
     for any i in (1..#a) : ( @a[i] < 100 )
     for 2 i in (1..#a) : ( @a[i] < 100 )
 
-In summary, the syntax of this operator is:
-
-.. code-block:: yara
-
-    for expression identifier in indexes : ( boolean_expression )
+The ``for..in`` operator is similar to ``for..of``, but the latter iterates over
+a set of strings, while the former iterates over ranges, enumerations, arrays and 
+dictionaries. 
 
 
 Iterators
 ---------
 
-In YARA 4.0 the ``for..of`` operator was improved and now it can be used to
+In YARA 4.0 the ``for..in`` operator was improved and now it can be used to
 iterate not only over integer enumerations and ranges (e.g: 1,2,3,4 and 1..4),
 but also over any kind of iterable data type, like arrays and dictionaries
 defined by YARA modules. For example, the following expression is valid in
@@ -1382,7 +1400,7 @@ hold the key and value for each entry in the dictionary, for example:
 
     for any k,v in some_dict : ( k == "foo" and v == "bar" )
 
-In general the ``for..of`` operator has the form:
+In general the ``for..in`` operator has the form:
 
 .. code-block:: yara
 

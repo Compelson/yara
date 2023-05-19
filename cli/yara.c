@@ -147,7 +147,9 @@ static bool show_tags = false;
 static bool show_stats = false;
 static bool show_strings = false;
 static bool show_string_length = false;
+static bool show_xor_key = false;
 static bool show_meta = false;
+static bool show_module_names = false;
 static bool show_namespace = false;
 static bool show_version = false;
 static bool show_help = false;
@@ -273,6 +275,12 @@ args_option_t options[] = {
         _T("print module data")),
 
     OPT_BOOLEAN(
+        'M',
+        _T("module-names"),
+        &show_module_names,
+        _T("show module names")),
+
+    OPT_BOOLEAN(
         'e',
         _T("print-namespace"),
         &show_namespace,
@@ -295,6 +303,12 @@ args_option_t options[] = {
         _T("print-string-length"),
         &show_string_length,
         _T("print length of matched strings")),
+
+    OPT_BOOLEAN(
+        'X',
+        _T("print-xor-key"),
+        &show_xor_key,
+        _T("print xor key and plaintext of matched strings")),
 
     OPT_BOOLEAN('g', _T("print-tags"), &show_tags, _T("print tags")),
 
@@ -765,14 +779,15 @@ static int populate_scan_list(const char* filename, SCAN_OPTIONS* scan_opts)
 
 #endif
 
-static void print_string(const uint8_t* data, int length)
+static void print_string(const uint8_t* data, int length, uint8_t xor_key)
 {
   for (int i = 0; i < length; i++)
   {
-    if (data[i] >= 32 && data[i] <= 126)
-      _tprintf(_T("%c"), data[i]);
+    uint8_t c = data[i] ^ xor_key;
+    if (c >= 32 && c <= 126)
+      _tprintf(_T("%c"), c);
     else
-      _tprintf(_T("\\x%02X"), data[i]);
+      _tprintf(_T("\\x%02X"), c);
   }
 }
 
@@ -1081,7 +1096,7 @@ static int handle_message(
 
     // Show matched strings.
 
-    if (show_strings || show_string_length)
+    if (show_strings || show_string_length || show_xor_key)
     {
       YR_STRING* string;
 
@@ -1103,6 +1118,13 @@ static int handle_message(
                 match->base + match->offset,
                 string->identifier);
 
+          if (show_xor_key)
+          {
+            _tprintf(_T(":xor(0x%02x,"), match->xor_key);
+            print_string(match->data, match->data_length, match->xor_key);
+            _tprintf(_T(")"));
+          }
+
           if (show_strings)
           {
             _tprintf(_T(": "));
@@ -1110,7 +1132,7 @@ static int handle_message(
             if (STRING_IS_HEX(string))
               print_hex_string(match->data, match->data_length);
             else
-              print_string(match->data, match->data_length);
+              print_string(match->data, match->data_length, 0);
           }
 
           _tprintf(_T("\n"));
@@ -1181,6 +1203,9 @@ static int callback(
 #if defined(_WIN32)
       // In Windows restore stdout to normal text mode as yr_object_print_data
       // calls printf which is not supported in UTF-8 mode.
+      // Explicitly flush the buffer before the switch in case we already
+      // printed something and it haven't been flushed automatically.
+      fflush(stdout);
       _setmode(_fileno(stdout), _O_TEXT);
 #endif
 
@@ -1189,6 +1214,9 @@ static int callback(
 
 #if defined(_WIN32)
       // Go back to UTF-8 mode.
+      // Explicitly flush the buffer before the switch in case we already
+      // printed something and it haven't been flushed automatically.
+      fflush(stdout);
       _setmode(_fileno(stdout), _O_U8TEXT);
 #endif
 
@@ -1377,6 +1405,18 @@ int _tmain(int argc, const char_t** argv)
   {
     fprintf(stderr, "maximum number of threads is %d\n", YR_MAX_THREADS);
     return EXIT_FAILURE;
+  }
+
+  // This can be done before yr_initialize() because we aren't calling any
+  // module functions, just accessing the name pointer for each module.
+  if (show_module_names)
+  {
+    for (YR_MODULE* module = yr_modules_get_table(); module->name != NULL;
+         module++)
+    {
+      printf("%s\n", module->name);
+    }
+    return EXIT_SUCCESS;
   }
 
   if (argc < 2)
@@ -1578,9 +1618,6 @@ int _tmain(int argc, const char_t** argv)
     else
     {
       result = populate_scan_list(argv[argc - 1], &scan_opts);
-
-      if (result != ERROR_SUCCESS)
-        exit_with_code(EXIT_FAILURE);
     }
 
     file_queue_finish();
@@ -1592,6 +1629,9 @@ int _tmain(int argc, const char_t** argv)
       yr_scanner_destroy(thread_args[i].scanner);
 
     file_queue_destroy();
+
+    if (result != ERROR_SUCCESS)
+      exit_with_code(EXIT_FAILURE);
   }
   else
   {

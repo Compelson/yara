@@ -70,6 +70,40 @@ jobs:
       - name: Build
         run: make clean && make
 
+  macosx-build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          brew install \
+            autoconf \
+            automake \
+            bison \
+            flex \
+            libtool \
+            pkg-config \
+            jansson \
+            libmagic \
+            openssl@3 \
+            protobuf \
+            protobuf-c
+      - name: Print versions
+        run: |
+          bison --version
+          gcc --version
+      - name: Prepare for building
+        run: |
+          ./bootstrap.sh
+          ./configure --enable-debug --enable-cuckoo --enable-magic --enable-pb-tests
+      - name: Build
+        run: make clean && make
+      - name: Run tests
+        run: make check
+      - name: Print tests errors
+        if: ${{ failure() }}
+        run: cat test-suite.log
+
   bazel-build:
     # The ubuntu-20.04 virtual environment has Bazel installed, see:
     # https://github.com/actions/virtual-environments
@@ -86,5 +120,30 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ env.cache-name }}-development
       - uses: actions/checkout@v2
-      - name: Build and run tests
-        run: bazel test --test_output=errors @jansson//... //tests/...
+      - name: Build
+        run: bazel build @jansson//... //tests/...
+      - name: Run tests
+        run: bazel test --test_output=errors //tests/...
+
+  bigendian:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup multiarch/qemu-user-static
+      run: |
+        docker run --rm --privileged multiarch/qemu-user-static:register --reset
+    - name: ubuntu-core:s390x-focal
+      uses: docker://multiarch/ubuntu-core:s390x-focal
+      with:
+        args: >
+          bash -c
+          "
+          apt-get update -y && 
+          DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata &&
+          apt-get install -y automake libtool make gcc pkg-config bison git &&
+          git clone https://github.com/VirusTotal/yara &&
+          cd yara &&
+          ./bootstrap.sh &&
+          ./configure --disable-proc-scan &&
+          make &&
+          make check
+          "

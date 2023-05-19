@@ -1,4 +1,4 @@
-AC_INIT([yara], [4.2.0], [vmalvarez@virustotal.com])
+AC_INIT([yara], [4.3.1], [vmalvarez@virustotal.com])
 
 AM_SILENT_RULES([yes])
 AC_CONFIG_SRCDIR([cli/yara.c])
@@ -42,7 +42,19 @@ case $host_alias in
      i?86-*-mingw*) CFLAGS="$CFLAGS -D__MINGW_USE_VC2005_COMPAT" ;;
 esac
 
-case $host_os in
+AC_ARG_ENABLE([proc-scan],
+  [AS_HELP_STRING([--disable-proc-scan], [disable process scanning])],
+  [if test x$enableval = xyes; then
+    AC_MSG_ERROR([
+*****************************************************************
+  Process scanning is enabled by default, remove --enable-proc-scan.
+*****************************************************************
+])
+  else
+    proc_interface=none
+    CFLAGS="$CFLAGS -DUSE_NO_PROC"
+  fi],
+  [case $host_os in
     darwin*) CFLAGS="$CFLAGS -I/opt/local/include"
              # Starting with Mac OS X 10.11 (El Capitan) the OpenSSL headers
              # are in /usr/local/opt/openssl/include
@@ -74,7 +86,9 @@ case $host_os in
             CFLAGS="$CFLAGS -DUSE_NO_PROC"
             proc_interface=none
             jemalloc_prefix= ;;
-esac
+  esac])
+
+
 
 ACX_PTHREAD(
     [LIBS="$PTHREAD_LIBS $LIBS"
@@ -259,20 +273,19 @@ AC_ARG_WITH([crypto],
 
 AS_IF([test "x$with_crypto" != "xno"],
   [
-    AC_CHECK_HEADERS([openssl/md5.h],, [have_crypto=no])
-    AC_CHECK_HEADERS([openssl/sha.h],, [have_crypto=no])
+    AC_CHECK_HEADERS([openssl/evp.h],, [have_crypto=no])
     AC_CHECK_HEADERS([openssl/asn1.h],, [have_crypto=no])
     AC_CHECK_HEADERS([openssl/crypto.h],, [have_crypto=no])
     AC_CHECK_HEADERS([openssl/bio.h],, [have_crypto=no])
     AC_CHECK_HEADERS([openssl/pkcs7.h],, [have_crypto=no])
     AC_CHECK_HEADERS([openssl/x509.h],, [have_crypto=no])
     AC_CHECK_HEADERS([openssl/safestack.h],, [have_crypto=no])
-    AC_CHECK_LIB(crypto, MD5_Init,, [have_crypto=no])
-    AC_CHECK_LIB(crypto, MD5_Update,, [have_crypto=no])
-    AC_CHECK_LIB(crypto, MD5_Final,, [have_crypto=no])
-    AC_CHECK_LIB(crypto, SHA256_Init,, [have_crypto=no])
-    AC_CHECK_LIB(crypto, SHA256_Update,, [have_crypto=no])
-    AC_CHECK_LIB(crypto, SHA256_Final,, [have_crypto=no])
+    AC_CHECK_LIB(crypto, EVP_DigestInit,, [have_crypto=no])
+    AC_CHECK_LIB(crypto, EVP_DigestUpdate,, [have_crypto=no])
+    AC_CHECK_LIB(crypto, EVP_DigestFinal,, [have_crypto=no])
+    AC_CHECK_LIB(crypto, EVP_md5,, [have_crypto=no])
+    AC_CHECK_LIB(crypto, EVP_sha1,, [have_crypto=no])
+    AC_CHECK_LIB(crypto, EVP_sha256,, [have_crypto=no])
   ],
   [
     have_crypto=no
@@ -332,6 +345,7 @@ AS_IF([test "x$have_crypto" = "xno"],
       ])
   ],
   [
+    build_authenticode_module=true # Authenticode relies on openssl
     build_hash_module=true
     CFLAGS="$CFLAGS -DHASH_MODULE"
     PC_REQUIRES_PRIVATE="$PC_REQUIRES_PRIVATE libcrypto"
@@ -351,6 +365,7 @@ AM_CONDITIONAL([UB_SANITIZER], [test x$undefined_behaviour_sanitizer = xtrue])
 AM_CONDITIONAL([CUCKOO_MODULE], [test x$build_cuckoo_module = xtrue])
 AM_CONDITIONAL([MAGIC_MODULE], [test x$build_magic_module = xtrue])
 AM_CONDITIONAL([HASH_MODULE], [test x$build_hash_module = xtrue])
+AM_CONDITIONAL([AUTHENTICODE_MODULE], [test x$build_authenticode_module = xtrue])
 AM_CONDITIONAL([DOTNET_MODULE], [test x$build_dotnet_module = xtrue])
 AM_CONDITIONAL([MACHO_MODULE], [test x$build_macho_module = xtrue])
 AM_CONDITIONAL([PB_TESTS_MODULE], [test x$build_pb_tests_module = xtrue])
@@ -367,11 +382,13 @@ AS_IF(
   [test x$proc_interface != xnone],[AC_DEFINE([HAVE_SCAN_PROC_IMPL],[1])],
   [test x$proc_interface = xnone],[AC_DEFINE([HAVE_SCAN_PROC_IMPL],[0])])
 
+# Configure TLSH function
+CFLAGS="$CFLAGS -DBUCKETS_128=1 -DCHECKSUM_1B=1"
+
 AC_SUBST([PC_REQUIRES_PRIVATE])
 AC_SUBST([PC_LIBS_PRIVATE])
 
 AC_CONFIG_FILES([Makefile])
-AC_CONFIG_FILES([libyara/Makefile])
-AC_CONFIG_FILES([libyara/yara.pc])
+AC_CONFIG_FILES([yara.pc])
 
 AC_OUTPUT
