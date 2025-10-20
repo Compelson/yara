@@ -80,6 +80,7 @@ x64/
 *.opendb
 *.opensdf
 *.VC.db
+*.user
 
 # NuGet
 windows/*/packages/

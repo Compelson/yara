@@ -21,6 +21,7 @@ SOFTWARE.
 
 #include "helper.h"
 
+#include <openssllib.h>
 #include <openssl/bio.h>
 #include <openssl/x509_vfy.h>
 #include <stdint.h>

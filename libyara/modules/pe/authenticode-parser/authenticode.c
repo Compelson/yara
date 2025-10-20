@@ -19,6 +19,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#include <openssllib.h>
 #include <openssl/asn1.h>
 #include <openssl/evp.h>
 #include <openssl/objects.h>

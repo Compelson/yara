@@ -21,6 +21,7 @@ SOFTWARE.
 
 #include "countersignature.h"
 
+#include <openssllib.h>
 #include <assert.h>
 #include <openssl/cms.h>
 #include <openssl/evp.h>

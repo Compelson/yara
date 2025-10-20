@@ -34,6 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../crypto.h"
 #if defined(HAVE_LIBCRYPTO)
 #include <authenticode-parser/authenticode.h>
+#include <openssllib.h>
 #include <openssl/evp.h>
 #endif
 
