@@ -129,7 +129,7 @@
     </ClCompile>
     <Lib>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalDependencies>crypt32.lib;ws2_32.lib;advapi32.lib;jansson.lib;libcrypto-1_1x64vc143d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>crypt32.lib;ws2_32.lib;advapi32.lib;jansson.lib;libcrypto-1_1$(PlatformTarget)vc$(PlatformToolsetVersion)d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkTimeCodeGeneration>true</LinkTimeCodeGeneration>
       <AdditionalLibraryDirectories>$(ME_SUPPORT)\Lib;..\packages\YARA.Jansson.x64.1.1.0\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>/IGNORE:4221</AdditionalOptions>
@@ -179,10 +179,10 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Lib>
-      <AdditionalDependencies>jansson.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>crypt32.lib;ws2_32.lib;advapi32.lib;jansson.lib;libcrypto-1_1$(PlatformTarget)vc$(PlatformToolsetVersion).lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
-      <AdditionalLibraryDirectories>$(COMPELSON_SUPPORT)\lib;..\packages\YARA.Jansson.x64.1.1.0\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ME_SUPPORT)\Lib;..\packages\YARA.Jansson.x64.1.1.0\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>/IGNORE:4221</AdditionalOptions>
     </Lib>
     <Link>
