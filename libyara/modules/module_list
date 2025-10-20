@@ -6,6 +6,10 @@ MODULE(time)
 MODULE(console)
 MODULE(string)
 
+#ifdef ANDROGUARD_MODULE
+MODULE(androguard)
+#endif
+
 #ifdef DOTNET_MODULE
 MODULE(dotnet)
 #endif

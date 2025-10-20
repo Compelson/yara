@@ -98,6 +98,10 @@ MODULES += libyara/modules/console/console.c
 
 MODULES += libyara/modules/string/string.c
 
+if ANDROGUARD_MODULE
+MODULES += libyara/modules/androguard/androguard.c
+endif
+
 if CUCKOO_MODULE
 MODULES += libyara/modules/cuckoo/cuckoo.c
 endif
