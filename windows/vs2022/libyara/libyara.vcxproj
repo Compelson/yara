@@ -151,6 +151,7 @@
       <ObjectFileName>$(IntDir)/%(RelativeDir)</ObjectFileName>
       <PrecompiledHeaderFile />
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <DebugInformationFormat>None</DebugInformationFormat>
     </ClCompile>
     <Lib>
       <AdditionalDependencies>jansson.lib;libcrypto.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -177,6 +178,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <PrecompiledHeaderFile />
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <DebugInformationFormat>None</DebugInformationFormat>
     </ClCompile>
     <Lib>
       <AdditionalDependencies>crypt32.lib;ws2_32.lib;advapi32.lib;jansson.lib;%(AdditionalDependencies)</AdditionalDependencies>
