@@ -94,7 +94,6 @@
       <AdditionalIncludeDirectories>..\..\..\libyara;..\..\..\libyara\include;..\..\..;..\packages\YARA.Jansson.x86.1.1.0\include;..\packages\YARA.OpenSSL.x86.1.1.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4005;4273;4090</DisableSpecificWarnings>
       <CompileAs>CompileAsC</CompileAs>
-      <ObjectFileName>$(IntDir)/%(RelativeDir)</ObjectFileName>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <PrecompiledHeaderFile />
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -121,7 +120,6 @@
       <AdditionalIncludeDirectories>$(ME_SUPPORT);$(ME_SUPPORT)\include;..\..\..\libyara;..\..\..\libyara\include;..\..\..;..\packages\YARA.Jansson.x64.1.1.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4005;4273;4090</DisableSpecificWarnings>
       <CompileAs>CompileAsC</CompileAs>
-      <ObjectFileName>$(IntDir)/%(RelativeDir)</ObjectFileName>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <OmitFramePointers>false</OmitFramePointers>
       <PrecompiledHeaderFile />
@@ -148,7 +146,6 @@
       <AdditionalIncludeDirectories>..\..\..\libyara;..\..\..\libyara\include;..\..\..;..\packages\YARA.Jansson.x86.1.1.0\include;..\packages\YARA.OpenSSL.x86.1.1.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4005;4273;4090</DisableSpecificWarnings>
       <CompileAs>CompileAsC</CompileAs>
-      <ObjectFileName>$(IntDir)/%(RelativeDir)</ObjectFileName>
       <PrecompiledHeaderFile />
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <DebugInformationFormat>None</DebugInformationFormat>
@@ -174,11 +171,10 @@
       <AdditionalIncludeDirectories>$(ME_SUPPORT);$(ME_SUPPORT)\include;..\..\..\libyara;..\..\..\libyara\include;..\..\..;..\packages\YARA.Jansson.x64.1.1.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4005;4273;4090</DisableSpecificWarnings>
       <CompileAs>CompileAsC</CompileAs>
-      <ObjectFileName>$(IntDir)/%(RelativeDir)</ObjectFileName>
       <OmitFramePointers>false</OmitFramePointers>
       <PrecompiledHeaderFile />
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <DebugInformationFormat>None</DebugInformationFormat>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Lib>
       <AdditionalDependencies>crypt32.lib;ws2_32.lib;advapi32.lib;jansson.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -247,7 +243,12 @@
     <ClCompile Include="..\..\..\libyara\modules\dex\dex.c" />
     <ClCompile Include="..\..\..\libyara\modules\dotnet\dotnet.c" />
     <ClCompile Include="..\..\..\libyara\modules\elf\elf.c" />
-    <ClCompile Include="..\..\..\libyara\modules\hash\hash.c" />
+    <ClCompile Include="..\..\..\libyara\modules\hash\hash.c">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)/hashm.obj</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)/hashm.obj</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)/hashm.obj</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)/hashm.obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="..\..\..\libyara\modules\math\math.c" />
     <ClCompile Include="..\..\..\libyara\modules\macho\macho.c" />
     <ClCompile Include="..\..\..\libyara\modules\pe\pe.c" />
