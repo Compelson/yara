@@ -748,11 +748,11 @@ int module_load(
   json = json_loadb(
       (const char*) module_data,
       module_data_size,
-      0,
+      JSON_ALLOW_NUL,
       &json_error);
 
   if (json == NULL)
-    return ERROR_INVALID_FILE;
+    return ERROR_INVALID_MODULE_DATA;
 
   /* Assign each object to their variables */
   package_name_obj = yr_get_object(module_object, "package_name");
