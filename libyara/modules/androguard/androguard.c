@@ -31,21 +31,22 @@ limitations under the License.
 #include <yara/modules.h>
 
 #ifdef _WIN32
-#define strcasecmp _stricmp
+#define memcasecmp _memicmp
 #endif
 
 #define MODULE_NAME androguard
 
 static int generalLookupFromEntryRegex(YR_SCAN_CONTEXT* ctx, YR_OBJECT* obj, RE* re)
 {
-	char* value = obj->data;
-	return value && yr_re_match(ctx, re, value) > 0;
+	return json_string_length(obj->data) && yr_re_match(ctx, re, json_string_value(obj->data)) > 0;
 }
 
-static int generalLookupFromEntryString(YR_OBJECT* obj, const char* arg)
+static int generalLookupFromEntryString(YR_OBJECT* obj, SIZED_STRING* ss)
 {
-	char* value = obj->data;
-	return value && strcasecmp(arg, value) == 0;
+	if (ss->length == 0) {
+		return FALSE;
+	}
+	return json_string_length(obj->data) == ss->length && memcasecmp(ss->c_string, json_string_value(obj->data), ss->length) == 0;
 }
 
 static int generalLookupFromListRegex(YR_SCAN_CONTEXT* ctx, YR_OBJECT* obj, RE* re)
@@ -61,38 +62,38 @@ static int generalLookupFromListRegex(YR_SCAN_CONTEXT* ctx, YR_OBJECT* obj, RE* 
 	return FALSE;
 }
 
-static int generalLookupFromListString(YR_OBJECT* obj, const char* arg)
+static int generalLookupFromListString(YR_OBJECT* obj, SIZED_STRING* ss)
 {
+	if (ss->length == 0) {
+		return FALSE;
+	}
 	json_t* list = (json_t*) obj->data;
 	size_t index;
 	json_t* value;
 	json_array_foreach(list, index, value) {
-		if (strcasecmp(arg, json_string_value(value)) == 0) {
+		if (json_string_length(value) != ss->length) {
+			continue;
+		}
+		if (memcasecmp(ss->c_string, json_string_value(value), ss->length) == 0) {
 			return TRUE;
 		}
 	}
 	return FALSE;
 }
 
-static void removeChar(char* input, char c)
+static size_t removeChar(char* input, size_t len, char c)
 {
 	char* read = input;
 	char* write = input;
-	while (*read) {
+	char* end = input + len;
+	while (read < end) {
 		if (*read != c) {
 			*write = *read;
 			++write;
 		}
 		++read;
 	}
-	*write = '\0';
-}
-
-static void toLower(char* str)
-{
-	for (; *str; ++str) {
-		*str = tolower((unsigned char)*str);
-	}
+	return (size_t)(write - input);
 }
 
 static int certificatePropertyLookupRegex(YR_SCAN_CONTEXT* ctx, YR_OBJECT* obj, const char* property, RE* re)
@@ -109,16 +110,21 @@ static int certificatePropertyLookupRegex(YR_SCAN_CONTEXT* ctx, YR_OBJECT* obj, 
 	return FALSE;
 }
 
-static int certificatePropertyLookupString(YR_OBJECT* obj, const char* property, char* arg)
+static int certificatePropertyLookupString(YR_OBJECT* obj, const char* property, SIZED_STRING* ss)
 {
-	removeChar(arg, ':');
-	toLower(arg);
+	if (ss->length == 0) {
+		return FALSE;
+	}
+
 	json_t* certsList = (json_t*) obj->data;
 	size_t index;
 	json_t* cert;
 	json_array_foreach(certsList, index, cert) {
-		char* certProperty = (char*)json_string_value(json_object_get(cert, property));
-		if (certProperty && strcasecmp(arg, certProperty) == 0) {
+		json_t* propertyJson = json_object_get(cert, property);
+		if (!propertyJson || json_string_length(propertyJson) != ss->length) {
+			continue;
+		}
+		if (memcasecmp(ss->c_string, json_string_value(propertyJson), ss->length) == 0) {
 			return TRUE;
 		}
 	}
@@ -133,7 +139,7 @@ define_function(certificate_issuer_lookup_regex)
 
 define_function(certificate_issuer_lookup_string)
 {
-	return_integer(certificatePropertyLookupString(yr_parent(), "issuerDN", string_argument(1)));
+	return_integer(certificatePropertyLookupString(yr_parent(), "issuerDN", sized_string_argument(1)));
 }
 
 define_function(certificate_not_after_lookup_regex)
@@ -143,7 +149,7 @@ define_function(certificate_not_after_lookup_regex)
 
 define_function(certificate_not_after_lookup_string)
 {
-	return_integer(certificatePropertyLookupString(yr_parent(), "not_after", string_argument(1)));
+	return_integer(certificatePropertyLookupString(yr_parent(), "not_after", sized_string_argument(1)));
 }
 
 define_function(certificate_not_before_lookup_regex)
@@ -153,22 +159,26 @@ define_function(certificate_not_before_lookup_regex)
 
 define_function(certificate_not_before_lookup_string)
 {
-	return_integer(certificatePropertyLookupString(yr_parent(), "not_before", string_argument(1)));
+	return_integer(certificatePropertyLookupString(yr_parent(), "not_before", sized_string_argument(1)));
 }
 
 define_function(certificate_serial_lookup_string)
 {
-  return_integer(certificatePropertyLookupString(yr_parent(), "serial", string_argument(1)));
+	return_integer(certificatePropertyLookupString(yr_parent(), "serial", sized_string_argument(1)));
 }
 
 define_function(certificate_sha1_lookup_string)
 {
-	return_integer(certificatePropertyLookupString(yr_parent(), "sha1", string_argument(1)));
+	SIZED_STRING* ss = sized_string_argument(1);
+	ss->length = removeChar(ss->c_string, ss->length, ':');
+	return_integer(certificatePropertyLookupString(yr_parent(), "sha1", ss));
 }
 
 define_function(certificate_sha256_lookup_string)
 {
-  return_integer(certificatePropertyLookupString(yr_parent(), "sha256", string_argument(1)));
+	SIZED_STRING* ss = sized_string_argument(1);
+	ss->length = removeChar(ss->c_string, ss->length, ':');
+	return_integer(certificatePropertyLookupString(yr_parent(), "sha256", ss));
 }
 
 define_function(certificate_subject_lookup_regex)
@@ -178,7 +188,7 @@ define_function(certificate_subject_lookup_regex)
 
 define_function(certificate_subject_lookup_string)
 {
-	return_integer(certificatePropertyLookupString(yr_parent(), "subjectDN", string_argument(1)));
+	return_integer(certificatePropertyLookupString(yr_parent(), "subjectDN", sized_string_argument(1)));
 }
 #pragma endregion // Certificates
 
@@ -189,10 +199,10 @@ define_function(permission_lookup_string)
 {
 	YR_OBJECT* usesPermissions_obj = yr_get_object(yr_module(), "uses_permission");
 	YR_OBJECT* newPermissions_obj = yr_get_object(yr_module(), "new_permission");
-	if (generalLookupFromListString(usesPermissions_obj, string_argument(1)) == 1) {
+	if (generalLookupFromListString(usesPermissions_obj, sized_string_argument(1)) == 1) {
 		return_integer(TRUE);
 	}
-	if (generalLookupFromListString(newPermissions_obj, string_argument(1)) == 1) {
+	if (generalLookupFromListString(newPermissions_obj, sized_string_argument(1)) == 1) {
 		return_integer(TRUE);
 	}
 	return_integer(FALSE);
@@ -216,7 +226,7 @@ define_function(permission_lookup_regex)
 define_function(usesPermission_lookup_string)
 {
 	YR_OBJECT* usesPermissions_obj = yr_get_object(yr_module(), "uses_permission");
-	return_integer(generalLookupFromListString(usesPermissions_obj, string_argument(1)));
+	return_integer(generalLookupFromListString(usesPermissions_obj, sized_string_argument(1)));
 }
 
 define_function(usesPermission_lookup_regex)
@@ -229,7 +239,7 @@ define_function(usesPermission_lookup_regex)
 define_function(newPermission_lookup_string)
 {
 	YR_OBJECT* newPermissions_obj = yr_get_object(yr_module(), "new_permission");
-	return_integer(generalLookupFromListString(newPermissions_obj, string_argument(1)));
+	return_integer(generalLookupFromListString(newPermissions_obj, sized_string_argument(1)));
 }
 
 define_function(newPermission_lookup_regex)
@@ -249,7 +259,7 @@ define_function(appname_lookup_regex)
 define_function(appname_lookup_string)
 {
 	YR_OBJECT* obj = yr_get_object(yr_module(), "app_name");
-	return_integer(generalLookupFromEntryString(obj, string_argument(1)));
+	return_integer(generalLookupFromEntryString(obj, sized_string_argument(1)));
 }
 
 define_function(displayed_version_lookup_regex)
@@ -261,7 +271,7 @@ define_function(displayed_version_lookup_regex)
 define_function(displayed_version_lookup_string)
 {
 	YR_OBJECT* obj = yr_get_object(yr_module(), "displayed_version");
-	return_integer(generalLookupFromEntryString(obj, string_argument(1)));
+	return_integer(generalLookupFromEntryString(obj, sized_string_argument(1)));
 }
 
 define_function(package_name_lookup_regex)
@@ -273,27 +283,21 @@ define_function(package_name_lookup_regex)
 define_function(package_name_lookup_string)
 {
 	YR_OBJECT* obj = yr_get_object(yr_module(), "package_name");
-	return_integer(generalLookupFromEntryString(obj, string_argument(1)));
+	return_integer(generalLookupFromEntryString(obj, sized_string_argument(1)));
 }
 #pragma endregion // LookupsFromEntries
 
 #pragma region LookupsFromLists
-define_function(activity_lookup_string)
-{
-	YR_OBJECT* obj = yr_get_object(yr_module(), "activity");
-	return_integer(generalLookupFromListString(obj, string_argument(1)));
-}
-
 define_function(activity_lookup_regex)
 {
 	YR_OBJECT* obj = yr_get_object(yr_module(), "activity");
 	return_integer(generalLookupFromListRegex(yr_scan_context(), obj, regexp_argument(1)));
 }
 
-define_function(filter_lookup_string)
+define_function(activity_lookup_string)
 {
-	YR_OBJECT* obj = yr_get_object(yr_module(), "filter");
-	return_integer(generalLookupFromListString(obj, string_argument(1)));
+	YR_OBJECT* obj = yr_get_object(yr_module(), "activity");
+	return_integer(generalLookupFromListString(obj, sized_string_argument(1)));
 }
 
 define_function(filter_lookup_regex)
@@ -302,10 +306,10 @@ define_function(filter_lookup_regex)
 	return_integer(generalLookupFromListRegex(yr_scan_context(), obj, regexp_argument(1)));
 }
 
-define_function(main_activity_lookup_string)
+define_function(filter_lookup_string)
 {
-	YR_OBJECT* obj = yr_get_object(yr_module(), "main_activity");
-	return_integer(generalLookupFromListString(obj, string_argument(1)));
+	YR_OBJECT* obj = yr_get_object(yr_module(), "filter");
+	return_integer(generalLookupFromListString(obj, sized_string_argument(1)));
 }
 
 define_function(main_activity_lookup_regex)
@@ -314,22 +318,22 @@ define_function(main_activity_lookup_regex)
 	return_integer(generalLookupFromListRegex(yr_scan_context(), obj, regexp_argument(1)));
 }
 
-define_function(receiver_lookup_regex)
+define_function(main_activity_lookup_string)
 {
-	YR_OBJECT* obj = yr_get_object(yr_module(), "receiver");
-	return_integer(generalLookupFromListString(obj, string_argument(1)));
+	YR_OBJECT* obj = yr_get_object(yr_module(), "main_activity");
+	return_integer(generalLookupFromListString(obj, sized_string_argument(1)));
 }
 
-define_function(receiver_lookup_string)
+define_function(receiver_lookup_regex)
 {
 	YR_OBJECT* obj = yr_get_object(yr_module(), "receiver");
 	return_integer(generalLookupFromListRegex(yr_scan_context(), obj, regexp_argument(1)));
 }
 
-define_function(service_lookup_string)
+define_function(receiver_lookup_string)
 {
-	YR_OBJECT* obj = yr_get_object(yr_module(), "service");
-	return_integer(generalLookupFromListString(obj, string_argument(1)));
+	YR_OBJECT* obj = yr_get_object(yr_module(), "receiver");
+	return_integer(generalLookupFromListString(obj, sized_string_argument(1)));
 }
 
 define_function(service_lookup_regex)
@@ -338,10 +342,10 @@ define_function(service_lookup_regex)
 	return_integer(generalLookupFromListRegex(yr_scan_context(), obj, regexp_argument(1)));
 }
 
-define_function(url_lookup_string)
+define_function(service_lookup_string)
 {
-	YR_OBJECT* obj = yr_get_object(yr_module(), "url");
-	return_integer(generalLookupFromListString(obj, string_argument(1)));
+	YR_OBJECT* obj = yr_get_object(yr_module(), "service");
+	return_integer(generalLookupFromListString(obj, sized_string_argument(1)));
 }
 
 define_function(url_lookup_regex)
@@ -350,6 +354,11 @@ define_function(url_lookup_regex)
 	return_integer(generalLookupFromListRegex(yr_scan_context(), obj, regexp_argument(1)));
 }
 
+define_function(url_lookup_string)
+{
+	YR_OBJECT* obj = yr_get_object(yr_module(), "url");
+	return_integer(generalLookupFromListString(obj, sized_string_argument(1)));
+}
 #pragma endregion // LookupsFromLists
 
 #pragma region ModuleDeclaration
@@ -477,22 +486,19 @@ int module_load(YR_SCAN_CONTEXT* context, YR_OBJECT* module_object, void* module
 
 	//// From entries
 	// Application name
-	const char* appName = (char*)json_string_value(json_object_get(json, "app_name"));
+	//const char* appName = (char*)json_string_value(json_object_get(json, "app_name"));
 	YR_OBJECT* appName_obj = yr_get_object(module_object, "app_name");
-	appName_obj->data = appName;
-	//yr_set_string(appName, module_data, "app_name");
+	appName_obj->data = json_object_get(json, "app_name");
 
 	// Displayed versions
-	const char* displayedVersion = (char*)json_string_value(json_object_get(json, "displayed_version"));
+	//const char* displayedVersion = (char*)json_string_value(json_object_get(json, "displayed_version"));
 	YR_OBJECT* displayedVersion_obj = yr_get_object(module_object, "displayed_version");
-	displayedVersion_obj->data = displayedVersion;
-	//yr_set_string(displayedVersion, module_data, "displayed_version");
+	displayedVersion_obj->data = json_object_get(json, "displayed_version");
 
 	// Package name
-	const char* packageName = (char*)json_string_value(json_object_get(json, "package_name"));
+	//const char* packageName = (char*)json_string_value(json_object_get(json, "package_name"));
 	YR_OBJECT* packageName_obj = yr_get_object(module_object, "package_name");
-	packageName_obj->data = packageName;
-	//yr_set_string(packageName, module_data, "package_name");
+	packageName_obj->data = json_object_get(json, "package_name");
 
 	//// From lists
 	YR_OBJECT* activity_obj = yr_get_object(module_object, "activity");
