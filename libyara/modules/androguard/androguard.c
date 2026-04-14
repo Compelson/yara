@@ -397,15 +397,12 @@ begin_declarations;
 	declare_function("new_permission", "s", "i", newPermission_lookup_string);
 
 	// From entries
-	//declare_string("app_name");
 	declare_function("app_name", "r", "i", appname_lookup_regex);
 	declare_function("app_name", "s", "i", appname_lookup_string);
 
-	//declare_string("displayed_version");
 	declare_function("displayed_version", "r", "i", displayed_version_lookup_regex);
 	declare_function("displayed_version", "s", "i", displayed_version_lookup_string);
 
-	//declare_string("package_name");
 	declare_function("package_name", "r", "i", package_name_lookup_regex);
 	declare_function("package_name", "s", "i", package_name_lookup_string);
 
@@ -486,17 +483,14 @@ int module_load(YR_SCAN_CONTEXT* context, YR_OBJECT* module_object, void* module
 
 	//// From entries
 	// Application name
-	//const char* appName = (char*)json_string_value(json_object_get(json, "app_name"));
 	YR_OBJECT* appName_obj = yr_get_object(module_object, "app_name");
 	appName_obj->data = json_object_get(json, "app_name");
 
 	// Displayed versions
-	//const char* displayedVersion = (char*)json_string_value(json_object_get(json, "displayed_version"));
 	YR_OBJECT* displayedVersion_obj = yr_get_object(module_object, "displayed_version");
 	displayedVersion_obj->data = json_object_get(json, "displayed_version");
 
 	// Package name
-	//const char* packageName = (char*)json_string_value(json_object_get(json, "package_name"));
 	YR_OBJECT* packageName_obj = yr_get_object(module_object, "package_name");
 	packageName_obj->data = json_object_get(json, "package_name");
 
