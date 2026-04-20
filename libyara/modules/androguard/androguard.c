@@ -288,6 +288,8 @@ define_function(package_name_lookup_string)
 #pragma endregion // LookupsFromEntries
 
 #pragma region LookupsFromLists
+
+// Activities
 define_function(activity_lookup_regex)
 {
 	YR_OBJECT* obj = yr_get_object(yr_module(), "activity");
@@ -300,6 +302,33 @@ define_function(activity_lookup_string)
 	return_integer(generalLookupFromListString(obj, sized_string_argument(1)));
 }
 
+// Activity aliases
+define_function(activity_alias_lookup_regex)
+{
+	YR_OBJECT* obj = yr_get_object(yr_module(), "activity_alias");
+	return_integer(generalLookupFromListRegex(yr_scan_context(), obj, regexp_argument(1)));
+}
+
+define_function(activity_alias_lookup_string)
+{
+	YR_OBJECT* obj = yr_get_object(yr_module(), "activity_alias");
+	return_integer(generalLookupFromListString(obj, sized_string_argument(1)));
+}
+
+// Features
+define_function(feature_lookup_regex)
+{
+	YR_OBJECT* obj = yr_get_object(yr_module(), "feature");
+	return_integer(generalLookupFromListRegex(yr_scan_context(), obj, regexp_argument(1)));
+}
+
+define_function(feature_lookup_string)
+{
+	YR_OBJECT* obj = yr_get_object(yr_module(), "feature");
+	return_integer(generalLookupFromListString(obj, sized_string_argument(1)));
+}
+
+// Filters
 define_function(filter_lookup_regex)
 {
 	YR_OBJECT* obj = yr_get_object(yr_module(), "filter");
@@ -312,6 +341,20 @@ define_function(filter_lookup_string)
 	return_integer(generalLookupFromListString(obj, sized_string_argument(1)));
 }
 
+// Libraries
+define_function(library_lookup_regex)
+{
+	YR_OBJECT* obj = yr_get_object(yr_module(), "library");
+	return_integer(generalLookupFromListRegex(yr_scan_context(), obj, regexp_argument(1)));
+}
+
+define_function(library_lookup_string)
+{
+	YR_OBJECT* obj = yr_get_object(yr_module(), "library");
+	return_integer(generalLookupFromListString(obj, sized_string_argument(1)));
+}
+
+// Main activity
 define_function(main_activity_lookup_regex)
 {
 	YR_OBJECT* obj = yr_get_object(yr_module(), "main_activity");
@@ -324,6 +367,20 @@ define_function(main_activity_lookup_string)
 	return_integer(generalLookupFromListString(obj, sized_string_argument(1)));
 }
 
+// Providers
+define_function(provider_lookup_regex)
+{
+	YR_OBJECT* obj = yr_get_object(yr_module(), "provider");
+	return_integer(generalLookupFromListRegex(yr_scan_context(), obj, regexp_argument(1)));
+}
+
+define_function(provider_lookup_string)
+{
+	YR_OBJECT* obj = yr_get_object(yr_module(), "provider");
+	return_integer(generalLookupFromListString(obj, sized_string_argument(1)));
+}
+
+// Recceivers
 define_function(receiver_lookup_regex)
 {
 	YR_OBJECT* obj = yr_get_object(yr_module(), "receiver");
@@ -336,6 +393,7 @@ define_function(receiver_lookup_string)
 	return_integer(generalLookupFromListString(obj, sized_string_argument(1)));
 }
 
+// Services
 define_function(service_lookup_regex)
 {
 	YR_OBJECT* obj = yr_get_object(yr_module(), "service");
@@ -348,6 +406,7 @@ define_function(service_lookup_string)
 	return_integer(generalLookupFromListString(obj, sized_string_argument(1)));
 }
 
+// URLs
 define_function(url_lookup_regex)
 {
 	YR_OBJECT* obj = yr_get_object(yr_module(), "url");
@@ -410,11 +469,23 @@ begin_declarations;
 	declare_function("activity", "r", "i", activity_lookup_regex);
 	declare_function("activity", "s", "i", activity_lookup_string);
 
+	declare_function("activity_alias", "r", "i", activity_alias_lookup_regex);
+	declare_function("activity_alias", "s", "i", activity_alias_lookup_string);
+
+	declare_function("feature", "r", "i", feature_lookup_regex);
+	declare_function("feature", "s", "i", feature_lookup_string);
+
 	declare_function("filter", "r", "i", filter_lookup_regex);
 	declare_function("filter", "s", "i", filter_lookup_string);
 
+	declare_function("library", "r", "i", library_lookup_regex);
+	declare_function("library", "s", "i", library_lookup_string);
+
 	declare_function("main_activity", "r", "i", main_activity_lookup_regex);
 	declare_function("main_activity", "s", "i", main_activity_lookup_string);
+
+	declare_function("provider", "r", "i", provider_lookup_regex);
+	declare_function("provider", "s", "i", provider_lookup_string);
 
 	declare_function("receiver", "r", "i", receiver_lookup_regex);
 	declare_function("receiver", "s", "i", receiver_lookup_string);
@@ -498,11 +569,23 @@ int module_load(YR_SCAN_CONTEXT* context, YR_OBJECT* module_object, void* module
 	YR_OBJECT* activity_obj = yr_get_object(module_object, "activity");
 	activity_obj->data = json_object_get(json, "activities");
 
+	YR_OBJECT* activity_alias_obj = yr_get_object(module_object, "activity_alias");
+	activity_alias_obj->data = json_object_get(json, "activity_aliases");
+
+	YR_OBJECT* feature_obj = yr_get_object(module_object, "feature");
+	feature_obj->data = json_object_get(json, "features");
+
 	YR_OBJECT* filter_obj = yr_get_object(module_object, "filter");
 	filter_obj->data = json_object_get(json, "filters");
 
+	YR_OBJECT* library_obj = yr_get_object(module_object, "library");
+	library_obj->data = json_object_get(json, "libraries");
+
 	YR_OBJECT* mainActivity_obj = yr_get_object(module_object, "main_activity");
 	mainActivity_obj->data = json_object_get(json, "main_activities");
+
+	YR_OBJECT* provider_obj = yr_get_object(module_object, "provider");
+	provider_obj->data = json_object_get(json, "providers");
 
 	YR_OBJECT* receiver_obj = yr_get_object(module_object, "receiver");
 	receiver_obj->data = json_object_get(json, "receivers");
