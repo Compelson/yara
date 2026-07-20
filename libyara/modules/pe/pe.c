@@ -46,6 +46,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <yara/pe.h>
 #include <yara/pe_utils.h>
 #include <yara/strutils.h>
+#include <yara/unaligned.h>
 #include <yara/utils.h>
 
 #define MODULE_NAME pe
@@ -249,6 +250,15 @@ static void pe_parse_rich_signature(PE* pe, uint64_t base_address)
   yr_set_sized_string(
       (char*) clear_data, rich_len, pe->object, "rich_signature.clear_data");
 
+  // A Rich header shorter than RICH_SIGNATURE makes the unsigned subtraction
+  // below wrap around, producing a bogus rich_count. _rich_version guards the
+  // same computation, do it here too.
+  if (rich_len < sizeof(RICH_SIGNATURE))
+  {
+    yr_free(clear_data);
+    return;
+  }
+
   // Allocate space for just the version data. This is a series of every other
   // dword from the clear data. This is useful to be able to hash alone.
   // We need to skip the first 3 DWORDs of the RICH_SIGNATURE, which are DanS
@@ -402,7 +412,7 @@ static const PIMAGE_RESOURCE_DIR_STRING_U parse_resource_name(
       return NULL;
 
     // Sanity check for strings that are excesively large.
-    if (pNameString->Length > 1000)
+    if (yr_le16toh(pNameString->Length) > 1000)
       return NULL;
 
     // Move past the length and make sure we have enough bytes for the string.
@@ -752,7 +762,7 @@ static int pe_collect_resources(
 {
   // Don't collect too many resources.
   if (pe->resources >= MAX_RESOURCES)
-    return RESOURCE_CALLBACK_CONTINUE;
+    return RESOURCE_CALLBACK_ABORT;
 
   yr_set_integer(
       yr_le32toh(rsrc_data->OffsetToData),
@@ -1303,9 +1313,9 @@ uint64_t pe_parse_delay_import_pointer(
     return YR_UNDEFINED;
 
   if (IS_64BITS_PE(pe))
-    return yr_le64toh(*(uint64_t*) data);
+    return yr_le64toh(yr_unaligned_u64(data));
   else
-    return yr_le32toh(*(uint32_t*) data);
+    return yr_le32toh(yr_unaligned_u32(data));
 }
 
 static void* pe_parse_delayed_imports(PE* pe)
@@ -1347,7 +1357,8 @@ static void* pe_parse_delayed_imports(PE* pe)
 
   import_descriptor = (PIMAGE_DELAYLOAD_DESCRIPTOR) (pe->data + offset);
 
-  for (; struct_fits_in_pe(pe, import_descriptor, IMAGE_DELAYLOAD_DESCRIPTOR);
+  for (; struct_fits_in_pe(pe, import_descriptor, IMAGE_DELAYLOAD_DESCRIPTOR) &&
+           num_imports < MAX_PE_IMPORTS;
        import_descriptor++)
   {
     // Check for the termination entry
@@ -1421,7 +1432,7 @@ static void* pe_parse_delayed_imports(PE* pe)
     uint64_t name_rva = ImportNameTableRVA;
     uint64_t func_rva = ImportAddressTableRVA;
 
-    for (;;)
+    for (;num_function_imports < MAX_PE_IMPORTS;)
     {
       uint64_t nameAddress = pe_parse_delay_import_pointer(
           pe, pointer_size, name_rva);
@@ -1606,8 +1617,8 @@ static void pe_parse_exports(PE* pe)
     if (offset < 0)
       return;
 
-    if (yr_le32toh(exports->NumberOfNames) * sizeof(DWORD) >
-        pe->data_size - offset)
+    if (yr_le32toh(exports->NumberOfNames) >
+        (pe->data_size - offset) / sizeof(DWORD))
       return;
 
     names = (DWORD*) (pe->data + offset);
@@ -1634,7 +1645,7 @@ static void pe_parse_exports(PE* pe)
     return;
 
   number_of_names = yr_min(
-      yr_le32toh(yr_le32toh(exports->NumberOfNames)), number_of_exports);
+      yr_le32toh(exports->NumberOfNames), number_of_exports);
 
   // Mapping out the exports is a bit janky. We start with the export address
   // array. The index from that array plus the ordinal base is the ordinal for
@@ -1744,6 +1755,7 @@ static void pe_parse_exports(PE* pe)
     char thumbprint_ascii[YR_SHA1_LEN * 2 + 1];                                \
     for (int j = 0; j < cert->sha1.len; ++j)                                   \
       sprintf(thumbprint_ascii + (j * 2), "%02x", cert->sha1.data[j]);         \
+    thumbprint_ascii[cert->sha1.len * 2] = '\0';                               \
                                                                                \
     yr_set_string(                                                             \
         (char*) thumbprint_ascii, pe->object, fmt ".thumbprint", __VA_ARGS__); \
@@ -1810,6 +1822,7 @@ void _process_authenticode(
       char* digest_ascii = yr_malloc(authenticode->digest.len * 2 + 1);
       for (int j = 0; j < authenticode->digest.len; ++j)
         sprintf(digest_ascii + (j * 2), "%02x", authenticode->digest.data[j]);
+      digest_ascii[authenticode->digest.len * 2] = '\0';
 
       yr_set_string(
           digest_ascii, pe->object, "signatures[%i].digest", *sig_count);
@@ -1822,6 +1835,7 @@ void _process_authenticode(
       for (int j = 0; j < authenticode->file_digest.len; ++j)
         sprintf(
             digest_ascii + (j * 2), "%02x", authenticode->file_digest.data[j]);
+      digest_ascii[authenticode->file_digest.len * 2] = '\0';
 
       yr_set_string(
           digest_ascii, pe->object, "signatures[%i].file_digest", *sig_count);
@@ -1874,6 +1888,7 @@ void _process_authenticode(
         char* digest_ascii = yr_malloc(signer->digest.len * 2 + 1);
         for (int j = 0; j < signer->digest.len; ++j)
           sprintf(digest_ascii + (j * 2), "%02x", signer->digest.data[j]);
+        digest_ascii[signer->digest.len * 2] = '\0';
 
         yr_set_string(
             digest_ascii,
@@ -1940,6 +1955,7 @@ void _process_authenticode(
           char* digest_ascii = yr_malloc(counter->digest.len * 2 + 1);
           for (int j = 0; j < counter->digest.len; ++j)
             sprintf(digest_ascii + (j * 2), "%02x", counter->digest.data[j]);
+          digest_ascii[counter->digest.len * 2] = '\0';
 
           yr_set_string(
               digest_ascii,
@@ -2052,7 +2068,9 @@ const char* pe_get_section_full_name(
   uint64_t string_index = 0;
 
   // Calculate string index/offset in string table
-  for (int i = 1; i < IMAGE_SIZEOF_SHORT_NAME && isdigit(section_name[i]); i++)
+  for (int i = 1;
+       i < IMAGE_SIZEOF_SHORT_NAME && isdigit((unsigned char) section_name[i]);
+       i++)
     string_index = (string_index * 10) + (section_name[i] - '0');
 
   // Calculate string pointer
@@ -2811,7 +2829,7 @@ define_function(imphash)
       // Lowercase the whole thing.
 
       for (i = 0; i < final_name_len; i++)
-        final_name[i] = tolower(final_name[i]);
+        final_name[i] = tolower((unsigned char) final_name[i]);
 
       yr_md5_update(&ctx, final_name, final_name_len);
 

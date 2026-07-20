@@ -31,6 +31,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define YR_UTILS_H
 
 #include <limits.h>
+#include <yara/integers.h>
+
+#ifdef _MSC_VER
+#include <intrin.h>
+#endif
 
 #ifndef NULL
 #define NULL 0
@@ -151,5 +156,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    0)
 
 #define YR_BITARRAY_NCHARS(bitnum) (((bitnum) + (CHAR_BIT - 1)) / CHAR_BIT)
+
+static inline int yr_popcount64(uint64_t val)
+{
+#if defined(__GNUC__) || defined(__clang__)
+  return __builtin_popcountll(val);
+#elif defined(_MSC_VER) && (defined(_M_X64) || defined(_M_ARM64))
+  return (int) __popcnt64(val);
+#else
+  val = val - ((val >> 1) & 0x5555555555555555ULL);
+  val = (val & 0x3333333333333333ULL) + ((val >> 2) & 0x3333333333333333ULL);
+  val = (val + (val >> 4)) & 0x0F0F0F0F0F0F0F0FULL;
+  return (int) ((val * 0x0101010101010101ULL) >> 56);
+#endif
+}
 
 #endif

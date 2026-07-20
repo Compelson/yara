@@ -132,7 +132,8 @@ define_function(telfhash)
 
     /* Convert it to lowercase */
     int j;
-    for (j = 0; name[j]; j++) clean_names[symbol_count][j] = tolower(name[j]);
+    for (j = 0; name[j]; j++)
+      clean_names[symbol_count][j] = tolower((unsigned char) name[j]);
 
     clean_names[symbol_count][j] = '\0';
 
@@ -227,7 +228,8 @@ define_function(import_md5)
 
     /* Convert it to lowercase */
     int j;
-    for (j = 0; name[j]; j++) clean_names[symbol_count][j] = tolower(name[j]);
+    for (j = 0; name[j]; j++)
+      clean_names[symbol_count][j] = tolower((unsigned char) name[j]);
 
     clean_names[symbol_count][j] = '\0';
 
@@ -336,10 +338,13 @@ static const char* str_table_entry(
   if (index < 0)
     return NULL;
 
-  str_entry = str_table_base + index;
-
-  if (str_entry >= str_table_limit)
+  // Bound the index against the table size before forming the pointer. On
+  // 32-bit builds str_table_base + index can wrap past str_table_limit for a
+  // large index and pass the check below, letting strnlen read out of bounds.
+  if ((size_t) index >= (size_t) (str_table_limit - str_table_base))
     return NULL;
+
+  str_entry = str_table_base + index;
 
   len = strnlen(str_entry, str_table_limit - str_entry);
 
@@ -557,7 +562,8 @@ static const char* str_table_entry(
         }                                                                                 \
                                                                                           \
         if (yr_##bo##32toh(section->type) == ELF_SHT_SYMTAB &&                            \
-            yr_##bo##32toh(section->link) < elf->sh_entry_count)                          \
+            yr_##bo##32toh(section->link) <                                               \
+                yr_##bo##16toh(elf->sh_entry_count))                                      \
         {                                                                                 \
           elf##bits##_section_header_t* string_section = section_table +                  \
                                                          yr_##bo##32toh(                  \
@@ -575,7 +581,8 @@ static const char* str_table_entry(
         }                                                                                 \
                                                                                           \
         if (yr_##bo##32toh(section->type) == ELF_SHT_DYNSYM &&                            \
-            yr_##bo##32toh(section->link) < elf->sh_entry_count)                          \
+            yr_##bo##32toh(section->link) <                                               \
+                yr_##bo##16toh(elf->sh_entry_count))                                      \
         {                                                                                 \
           elf##bits##_section_header_t* dynstr_section = section_table +                  \
                                                          yr_##bo##32toh(                  \

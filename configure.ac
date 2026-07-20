@@ -1,4 +1,4 @@
-AC_INIT([yara], [4.5.5], [vmalvarez@virustotal.com])
+AC_INIT([yara], [4.5.7], [vmalvarez@virustotal.com])
 
 AM_SILENT_RULES([yes])
 AC_CONFIG_SRCDIR([cli/yara.c])
@@ -51,10 +51,20 @@ AC_ARG_ENABLE([proc-scan],
   fi],
   [case $host_os in
     darwin*) CFLAGS="$CFLAGS -I/opt/local/include"
-             # Starting with Mac OS X 10.11 (El Capitan) the OpenSSL headers
-             # are in /usr/local/opt/openssl/include
-             CFLAGS="$CFLAGS -DUSE_MACH_PROC -I/usr/local/opt/openssl/include"
-             LDFLAGS="$LDFLAGS -L/usr/local/opt/openssl/lib"
+             LDFLAGS="$LDFLAGS -L/opt/local/lib"
+             if which brew >/dev/null 2>&1; then
+               brew_prefix=$(brew --prefix)
+               CFLAGS="$CFLAGS -I$brew_prefix/include"
+               LDFLAGS="$LDFLAGS -L$brew_prefix/lib"
+               CFLAGS="$CFLAGS -I$brew_prefix/opt/openssl/include"
+               LDFLAGS="$LDFLAGS -L$brew_prefix/opt/openssl/lib"
+             else
+               CFLAGS="$CFLAGS -I/usr/local/include -I/opt/homebrew/include"
+               LDFLAGS="$LDFLAGS -L/usr/local/lib -L/opt/homebrew/lib"
+               CFLAGS="$CFLAGS -I/usr/local/opt/openssl/include -I/opt/homebrew/opt/openssl/include"
+               LDFLAGS="$LDFLAGS -L/usr/local/opt/openssl/lib -L/opt/homebrew/opt/openssl/lib"
+             fi
+             CFLAGS="$CFLAGS -DUSE_MACH_PROC"
              posix=true
              proc_interface=mach
              jemalloc_prefix=je_ ;;
