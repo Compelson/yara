@@ -92,3 +92,4 @@ windows/*/packages/
 .vscode/
 
 tests/mapper
+**/out/
