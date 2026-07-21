@@ -22,13 +22,12 @@ limitations under the License.
 	- 2017/01/11: Added displayed_version functions
 */
 
-#include <jansson.h>
-#include <string.h>
+#include <yara/modules.h>
+#include <yara/re.h>
 
 #include <ctype.h>
-
-#include <yara/re.h>
-#include <yara/modules.h>
+#include <jansson.h>
+#include <string.h>
 
 #ifdef _WIN32
 #define memcasecmp _memicmp
@@ -51,10 +50,11 @@ static int generalLookupFromEntryString(YR_OBJECT* obj, SIZED_STRING* ss)
 
 static int generalLookupFromListRegex(YR_SCAN_CONTEXT* ctx, YR_OBJECT* obj, RE* re)
 {
-	json_t* list = (json_t*) obj->data;
+	json_t* list = (json_t*)obj->data;
 	size_t index;
 	json_t* value;
-	json_array_foreach(list, index, value) {
+	json_array_foreach(list, index, value)
+	{
 		if (yr_re_match(ctx, re, json_string_value(value)) > 0) {
 			return TRUE;
 		}
@@ -67,10 +67,11 @@ static int generalLookupFromListString(YR_OBJECT* obj, SIZED_STRING* ss)
 	if (ss->length == 0) {
 		return FALSE;
 	}
-	json_t* list = (json_t*) obj->data;
+	json_t* list = (json_t*)obj->data;
 	size_t index;
 	json_t* value;
-	json_array_foreach(list, index, value) {
+	json_array_foreach(list, index, value)
+	{
 		if (json_string_length(value) != ss->length) {
 			continue;
 		}
@@ -98,10 +99,11 @@ static size_t removeChar(char* input, size_t len, char c)
 
 static int certificatePropertyLookupRegex(YR_SCAN_CONTEXT* ctx, YR_OBJECT* obj, const char* property, RE* re)
 {
-	json_t* certsList = (json_t*) obj->data;
+	json_t* certsList = (json_t*)obj->data;
 	size_t index;
 	json_t* cert;
-	json_array_foreach(certsList, index, cert) {
+	json_array_foreach(certsList, index, cert)
+	{
 		char* certProperty = (char*)json_string_value(json_object_get(cert, property));
 		if (certProperty && yr_re_match(ctx, re, certProperty) > 0) {
 			return TRUE;
@@ -116,10 +118,11 @@ static int certificatePropertyLookupString(YR_OBJECT* obj, const char* property,
 		return FALSE;
 	}
 
-	json_t* certsList = (json_t*) obj->data;
+	json_t* certsList = (json_t*)obj->data;
 	size_t index;
 	json_t* cert;
-	json_array_foreach(certsList, index, cert) {
+	json_array_foreach(certsList, index, cert)
+	{
 		json_t* propertyJson = json_object_get(cert, property);
 		if (!propertyJson || json_string_length(propertyJson) != ss->length) {
 			continue;
@@ -421,12 +424,13 @@ define_function(url_lookup_string)
 #pragma endregion // LookupsFromLists
 
 #pragma region ModuleDeclaration
+// clang-format off
 begin_declarations;
 	// Versions
 	declare_integer("max_sdk");
 	declare_integer("min_sdk");
 	declare_integer("target_sdk");
-	
+
 	// Certificates
 	begin_struct("certificate");
 		declare_function("issuer", "r", "i", certificate_issuer_lookup_regex);
@@ -497,6 +501,7 @@ begin_declarations;
 	declare_function("url", "s", "i", url_lookup_string);
 
 end_declarations;
+// clang-format on
 #pragma endregion // ModuleDeclaration
 
 int module_initialize(YR_MODULE* module)
@@ -517,7 +522,7 @@ int module_load(YR_SCAN_CONTEXT* context, YR_OBJECT* module_object, void* module
 
 	json_t* json;
 	json_error_t json_error;
-	json = json_loadb((const char*) module_data, module_data_size, JSON_ALLOW_NUL, &json_error);
+	json = json_loadb((const char*)module_data, module_data_size, JSON_ALLOW_NUL, &json_error);
 	if (!json) {
 		return ERROR_INVALID_MODULE_DATA;
 	}
@@ -598,7 +603,6 @@ int module_load(YR_SCAN_CONTEXT* context, YR_OBJECT* module_object, void* module
 
 	return ERROR_SUCCESS;
 }
-
 
 int module_unload(YR_OBJECT* module)
 {
