@@ -703,7 +703,7 @@ static char* get_type_def_or_ref_fullname(
 
     TYPESPEC_ROW spec_row;
     bool result = read_typespec(ctx, data, &spec_row);
-    if (result)
+    if (result && spec_row.Signature < ctx->blob_size)
     {
       const uint8_t* sig_data = ctx->blob_heap + spec_row.Signature;
 
@@ -1362,6 +1362,9 @@ static void parse_methods(
     if (!result)
       continue;
 
+    if (row.Signature >= ctx->blob_size)
+      continue;  
+
     const char* name = pe_get_dotnet_string(
         ctx->pe, str_heap, str_size, row.Name);
 
@@ -1707,9 +1710,9 @@ void dotnet_parse_guid(
     sprintf(
         guid,
         "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-        yr_le32toh(*(uint32_t*) guid_offset),
-        yr_le16toh(*(uint16_t*) (guid_offset + 4)),
-        yr_le16toh(*(uint16_t*) (guid_offset + 6)),
+        yr_le32toh(yr_unaligned_u32(guid_offset)),
+        yr_le16toh(yr_unaligned_u16(guid_offset + 4)),
+        yr_le16toh(yr_unaligned_u16(guid_offset + 6)),
         *(guid_offset + 8),
         *(guid_offset + 9),
         *(guid_offset + 10),
@@ -1958,11 +1961,8 @@ void dotnet_parse_tilde_2(
   uint8_t index_size, index_size2;
 
   // Number of rows is the number of bits set to 1 in Valid.
-  // Should use this technique:
-  // http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetKernighan
   // Count number of Rows size entries in header to skip over them
-  for (i = 0; i < 64; i++)
-    valid_rows += ((yr_le64toh(tilde_header->Valid) >> i) & 0x01);
+  valid_rows = yr_popcount64(yr_le64toh(tilde_header->Valid));
 
   row_offset = (uint32_t*) (tilde_header + 1);
   table_offset = (uint8_t*) row_offset;
@@ -2195,10 +2195,10 @@ void dotnet_parse_tilde_2(
         blob_offset = ((uint8_t*) constant_table) + 2 + index_size;
 
         if (index_sizes.blob == 4)
-          blob_index = *(DWORD*) blob_offset;
+          blob_index = yr_unaligned_u32(blob_offset);
         else
           // Cast the value (index into blob table) to a 32bit value.
-          blob_index = (DWORD) (*(WORD*) blob_offset);
+          blob_index = (DWORD) (yr_unaligned_u16(blob_offset));
 
         // Everything checks out. Make sure the index into the blob field
         // is valid (non-null and within range).
@@ -2297,7 +2297,7 @@ void dotnet_parse_tilde_2(
             // Low 5 bits tell us what this is an index into. Remaining bits
             // tell us the index value.
             // Parent must be an index into the Assembly (0x0E) table.
-            if ((*(DWORD*) customattribute_table & 0x1F) != 0x0E)
+            if ((yr_unaligned_u32(customattribute_table) & 0x1F) != 0x0E)
             {
               row_ptr += row_size;
               continue;
@@ -2308,7 +2308,7 @@ void dotnet_parse_tilde_2(
             // Low 5 bits tell us what this is an index into. Remaining bits
             // tell us the index value.
             // Parent must be an index into the Assembly (0x0E) table.
-            if ((*(WORD*) customattribute_table & 0x1F) != 0x0E)
+            if ((yr_unaligned_u16(customattribute_table) & 0x1F) != 0x0E)
             {
               row_ptr += row_size;
               continue;
@@ -2324,27 +2324,27 @@ void dotnet_parse_tilde_2(
             // Low 3 bits tell us what this is an index into. Remaining bits
             // tell us the index value. Only values 2 and 3 are defined.
             // Type must be an index into the MemberRef table.
-            if ((*(DWORD*) customattribute_table & 0x07) != 0x03)
+            if ((yr_unaligned_u32(customattribute_table) & 0x07) != 0x03)
             {
               row_ptr += row_size;
               continue;
             }
 
-            type_index = *(DWORD*) customattribute_table >> 3;
+            type_index = yr_unaligned_u32(customattribute_table) >> 3;
           }
           else
           {
             // Low 3 bits tell us what this is an index into. Remaining bits
             // tell us the index value. Only values 2 and 3 are defined.
             // Type must be an index into the MemberRef table.
-            if ((*(WORD*) customattribute_table & 0x07) != 0x03)
+            if ((yr_unaligned_u16(customattribute_table) & 0x07) != 0x03)
             {
               row_ptr += row_size;
               continue;
             }
 
             // Cast the index to a 32bit value.
-            type_index = (DWORD) ((*(WORD*) customattribute_table >> 3));
+            type_index = (DWORD) (yr_unaligned_u16(customattribute_table) >> 3);
           }
 
           if (type_index > 0)
@@ -2361,27 +2361,27 @@ void dotnet_parse_tilde_2(
             // Low 3 bits tell us what this is an index into. Remaining bits
             // tell us the index value. Class must be an index into the
             // TypeRef table.
-            if ((*(DWORD*) memberref_row & 0x07) != 0x01)
+            if ((yr_unaligned_u32(memberref_row) & 0x07) != 0x01)
             {
               row_ptr += row_size;
               continue;
             }
 
-            class_index = *(DWORD*) memberref_row >> 3;
+            class_index = yr_unaligned_u32(memberref_row) >> 3;
           }
           else
           {
             // Low 3 bits tell us what this is an index into. Remaining bits
             // tell us the index value. Class must be an index into the
             // TypeRef table.
-            if ((*(WORD*) memberref_row & 0x07) != 0x01)
+            if ((yr_unaligned_u16(memberref_row) & 0x07) != 0x01)
             {
               row_ptr += row_size;
               continue;
             }
 
             // Cast the index to a 32bit value.
-            class_index = (DWORD) (*(WORD*) memberref_row >> 3);
+            class_index = (DWORD) (yr_unaligned_u16(memberref_row) >> 3);
           }
 
           if (class_index > 0)
@@ -2410,12 +2410,18 @@ void dotnet_parse_tilde_2(
           if (index_sizes.string == 4)
           {
             name = pe_get_dotnet_string(
-                pe, string_offset, str_heap_size, *(DWORD*) typeref_row);
+                pe,
+                string_offset,
+                str_heap_size,
+                yr_unaligned_u32(typeref_row));
           }
           else
           {
             name = pe_get_dotnet_string(
-                pe, string_offset, str_heap_size, *(WORD*) typeref_row);
+                pe,
+                string_offset,
+                str_heap_size,
+                yr_unaligned_u16(typeref_row));
           }
 
           if (name != NULL && strncmp(name, "GuidAttribute", 13) != 0)
@@ -2430,10 +2436,10 @@ void dotnet_parse_tilde_2(
                                                             index_size2);
 
           if (index_sizes.blob == 4)
-            blob_index = *(DWORD*) customattribute_table;
+            blob_index = yr_unaligned_u32(customattribute_table);
           else
             // Cast the value (index into blob table) to a 32bit value.
-            blob_index = (DWORD) (*(WORD*) customattribute_table);
+            blob_index = (DWORD) (yr_unaligned_u16(customattribute_table));
 
           // Everything checks out. Make sure the index into the blob field
           // is valid (non-null and within range).
@@ -2471,7 +2477,7 @@ void dotnet_parse_tilde_2(
           }
 
           // Custom attributes MUST have a 16 bit prolog of 0x0001
-          if (*(WORD*) blob_offset != 0x0001)
+          if (yr_unaligned_u16(blob_offset) != 0x0001)
           {
             row_ptr += row_size;
             continue;
@@ -2748,15 +2754,16 @@ void dotnet_parse_tilde_2(
             pe,
             string_offset,
             str_heap_size,
-            yr_le32toh(*(DWORD*) (row_ptr + 4 + 2 + 2 + 2 + 2 + 4 +
-                                  index_sizes.blob)));
+            yr_le32toh(yr_unaligned_u32(
+                row_ptr + 4 + 2 + 2 + 2 + 2 + 4 + index_sizes.blob)));
       else
         name = pe_get_dotnet_string(
             pe,
             string_offset,
             str_heap_size,
             yr_le16toh(
-                *(WORD*) (row_ptr + 4 + 2 + 2 + 2 + 2 + 4 + index_sizes.blob)));
+                yr_unaligned_u16(
+                    row_ptr + 4 + 2 + 2 + 2 + 2 + 4 + index_sizes.blob)));
 
       if (name != NULL)
         yr_set_string(name, pe->object, "assembly.name");
@@ -2768,8 +2775,9 @@ void dotnet_parse_tilde_2(
             pe,
             string_offset,
             str_heap_size,
-            yr_le32toh(*(DWORD*) (row_ptr + 4 + 2 + 2 + 2 + 2 + 4 +
-                                  index_sizes.blob + index_sizes.string)));
+            yr_le32toh(yr_unaligned_u32(
+                row_ptr + 4 + 2 + 2 + 2 + 2 + 4 + index_sizes.blob +
+                index_sizes.string)));
       }
       else
       {
@@ -2777,8 +2785,9 @@ void dotnet_parse_tilde_2(
             pe,
             string_offset,
             str_heap_size,
-            yr_le16toh(*(WORD*) (row_ptr + 4 + 2 + 2 + 2 + 2 + 4 +
-                                 index_sizes.blob + index_sizes.string)));
+            yr_le16toh(yr_unaligned_u16(
+                row_ptr + 4 + 2 + 2 + 2 + 2 + 4 + index_sizes.blob +
+                index_sizes.string)));
       }
 
       // Sometimes it will be a zero length string. This is technically
@@ -2871,15 +2880,15 @@ void dotnet_parse_tilde_2(
               pe,
               string_offset,
               str_heap_size,
-              yr_le32toh(
-                  *(DWORD*) (row_ptr + 2 + 2 + 2 + 2 + 4 + index_sizes.blob)));
+              yr_le32toh(yr_unaligned_u32(
+                  row_ptr + 2 + 2 + 2 + 2 + 4 + index_sizes.blob)));
         else
           name = pe_get_dotnet_string(
               pe,
               string_offset,
               str_heap_size,
-              yr_le16toh(
-                  *(WORD*) (row_ptr + 2 + 2 + 2 + 2 + 4 + index_sizes.blob)));
+              yr_le16toh(yr_unaligned_u16(
+                  row_ptr + 2 + 2 + 2 + 2 + 4 + index_sizes.blob)));
 
         if (name != NULL)
           yr_set_string(name, pe->object, "assembly_refs[%i].name", i);
@@ -2946,10 +2955,10 @@ void dotnet_parse_tilde_2(
 
         if (index_size == 4)
           implementation = yr_le32toh(
-              *(DWORD*) (row_ptr + 4 + 4 + index_sizes.string));
+              yr_unaligned_u32(row_ptr + 4 + 4 + index_sizes.string));
         else
           implementation = yr_le16toh(
-              *(WORD*) (row_ptr + 4 + 4 + index_sizes.string));
+              yr_unaligned_u16(row_ptr + 4 + 4 + index_sizes.string));
 
         row_ptr += row_size;
 
@@ -2974,7 +2983,7 @@ void dotnet_parse_tilde_2(
           continue;
 
         resource_size = yr_le32toh(
-            *(DWORD*) (pe->data + resource_base + resource_offset));
+            yr_unaligned_u32(pe->data + resource_base + resource_offset));
 
         // Add 4 to skip the size.
         yr_set_integer(
@@ -3074,7 +3083,6 @@ void dotnet_parse_tilde_2(
 
 void dotnet_parse_tilde(PE* pe, PCLI_HEADER cli_header, PSTREAMS streams)
 {
-  PTILDE_HEADER tilde_header;
   int64_t resource_base;
   int64_t metadata_root = streams->metadata_root;
   uint32_t* row_offset = NULL;
@@ -3101,8 +3109,12 @@ void dotnet_parse_tilde(PE* pe, PCLI_HEADER cli_header, PSTREAMS streams)
   // Default index sizes are 2. Will be bumped to 4 if necessary.
   memset(&index_sizes, 2, sizeof(index_sizes));
 
-  tilde_header = (PTILDE_HEADER) (pe->data + metadata_root +
+  const PTILDE_HEADER tilde_header = (PTILDE_HEADER) (pe->data + metadata_root +
                                   yr_le32toh(streams->tilde->Offset));
+
+  const uint8_t* tilde_stream_end = pe->data + metadata_root +
+                                    yr_le32toh(streams->tilde->Offset) +
+                                    yr_le32toh(streams->tilde->Size);
 
   if (!struct_fits_in_pe(pe, tilde_header, TILDE_HEADER))
     return;
@@ -3126,6 +3138,11 @@ void dotnet_parse_tilde(PE* pe, PCLI_HEADER cli_header, PSTREAMS streams)
   // Save the row offset.
   row_offset = (uint32_t*) (tilde_header + 1);
 
+  uint32_t valid_count = yr_popcount64(yr_le64toh(tilde_header->Valid));
+  
+  if (!fits_in_pe(pe, row_offset, valid_count * sizeof(uint32_t)))
+    return;
+
   // Walk all the bits first because we need to know the number of rows for
   // some tables in order to parse others. In particular this applies to
   // coded indexes, which are documented in ECMA-335 II.24.2.6.
@@ -3134,8 +3151,8 @@ void dotnet_parse_tilde(PE* pe, PCLI_HEADER cli_header, PSTREAMS streams)
     if (!((yr_le64toh(tilde_header->Valid) >> bit_check) & 0x01))
       continue;
 
-#define ROW_CHECK(name)                                                  \
-  if (fits_in_pe(pe, row_offset, (matched_bits + 1) * sizeof(uint32_t))) \
+#define ROW_CHECK(name)                                              \
+  if ((uint8_t*)(row_offset + matched_bits + 1) <= tilde_stream_end) \
     rows.name = *(row_offset + matched_bits);
 
 #define ROW_CHECK_WITH_INDEX(name)    \

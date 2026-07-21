@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <assert.h>
 #include <stdarg.h>
 #include <stddef.h>
+#include <string.h>
 #include <yara/arena.h>
 #include <yara/error.h>
 #include <yara/mem.h>
@@ -184,19 +185,17 @@ static int _yr_arena_allocate_memory(
                             ? new_data
                             : arena->buffers[reloc->buffer_id].data;
 
-        // reloc_address holds the address inside the buffer where the pointer
-        // to be relocated resides.
-        void** reloc_address = (void**) (base + reloc->offset);
-
         // reloc_target is the value of the relocatable pointer.
-        void* reloc_target = *reloc_address;
+        void* reloc_target;
+        memcpy(&reloc_target, base + reloc->offset, sizeof(reloc_target));
 
         if ((uint8_t*) reloc_target >= b->data &&
             (uint8_t*) reloc_target < b->data + b->used)
         {
           // reloc_target points to some data inside the buffer being moved, so
           // the pointer needs to be adjusted.
-          *reloc_address = (uint8_t*) reloc_target - b->data + new_data;
+          void* new_target = (uint8_t*) reloc_target - b->data + new_data;
+          memcpy(base + reloc->offset, &new_target, sizeof(new_target));
         }
 
         reloc = reloc->next;
@@ -595,13 +594,18 @@ int yr_arena_load_stream(YR_STREAM* stream, YR_ARENA** arena)
 
   while (yr_stream_read(&reloc_ref, sizeof(reloc_ref), 1, stream) == 1)
   {
+    if (reloc_ref.buffer_id >= new_arena->num_buffers)
+    {
+      yr_arena_release(new_arena);
+      return ERROR_CORRUPT_FILE;
+    }
+
     YR_ARENA_BUFFER* b = &new_arena->buffers[reloc_ref.buffer_id];
 
-    if (b->data == NULL || 
-        b->used < sizeof(void*) ||
+    if (b->data == NULL ||
+        b->used < sizeof(YR_ARENA_REF) ||
         b->used > b->size ||
-        reloc_ref.buffer_id >= new_arena->num_buffers ||
-        reloc_ref.offset > b->used - sizeof(void*))
+        reloc_ref.offset > b->used - sizeof(YR_ARENA_REF))
     {
       yr_arena_release(new_arena);
       return ERROR_CORRUPT_FILE;
@@ -610,6 +614,18 @@ int yr_arena_load_stream(YR_STREAM* stream, YR_ARENA** arena)
     YR_ARENA_REF ref;
 
     memcpy(&ref, b->data + reloc_ref.offset, sizeof(ref));
+
+    // ref is the relocation target read from the loaded buffer, so its
+    // buffer_id and offset come straight from the stream. yr_arena_get_ptr
+    // only guards them with assert, which is a no-op under NDEBUG and would
+    // index past the buffers array, so reject an out-of-range target here.
+    if (!YR_ARENA_IS_NULL_REF(ref) &&
+        (ref.buffer_id >= new_arena->num_buffers ||
+         ref.offset > new_arena->buffers[ref.buffer_id].used))
+    {
+      yr_arena_release(new_arena);
+      return ERROR_CORRUPT_FILE;
+    }
 
     void* reloc_ptr = yr_arena_ref_to_ptr(new_arena, &ref);
 
