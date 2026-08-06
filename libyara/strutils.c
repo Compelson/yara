@@ -203,8 +203,7 @@ size_t strlcpy_w(char* dst, const char* w_src, size_t n)
   return (s - w_src) / 2;
 }
 
-#if !HAVE_MEMMEM && !defined(memmem)
-void* memmem(
+void* yr_memmem(
     const void* haystack,
     size_t haystack_size,
     const void* needle,
@@ -230,7 +229,6 @@ void* memmem(
 
   return NULL;
 }
-#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 // This our own implementation of isalnum(). The library version is locale
