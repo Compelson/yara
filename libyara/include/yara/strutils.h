@@ -93,13 +93,11 @@ size_t strlcpy(char* dst, const char* src, size_t size);
 size_t strlcat(char* dst, const char* src, size_t size);
 #endif
 
-#if !HAVE_MEMMEM && !defined(memmem)
-void* memmem(
+void* yr_memmem(
     const void* haystack,
     size_t haystack_size,
     const void* needle,
     size_t needle_size);
-#endif
 
 int strnlen_w(const char* w_str);
 
